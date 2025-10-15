@@ -22,14 +22,8 @@ languages:
         params:
             sidebar:
                 subtitle:  # 侧边栏副标题
-    zh-cn:
-        languageName: 中文
-        title: 李思凡的博客
-        weight: 2
-        params:
-            sidebar:
-                subtitle: 
-                
+
+
 # 第三方服务配置
 services:
     # Disqus评论系统（使用前需修改为你的shortname）
