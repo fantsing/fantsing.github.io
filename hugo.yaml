@@ -1,9 +1,9 @@
 # 站点基础配置
-baseurl: https://example.com/           # 网站根URL
+baseurl: https://fantsing.github.io/           # 网站根URL
 languageCode: en-us                     # 默认语言代码
 theme: hugo-theme-stack                 # 使用的主题名称
-title: Example Site                     # 网站标题
-copyright: Example Person               # 版权信息
+title: Lee Sivan's Blog                     # 网站标题
+copyright: Lee Sivan               # 版权信息
 
 # 国际化配置
 # 支持的语言: ar, bn, ca, de, el, en, es, fr, hu, id, it, ja, ko, nl, pt-br, th, uk, zh-cn, zh-hk, zh-tw
@@ -17,11 +17,11 @@ hasCJKLanguage: false
 languages:
     en:
         languageName: English           # 语言显示名称
-        title: Example Site             # 该语言下的网站标题
+        title: Lee Sivan's Blog            # 该语言下的网站标题
         weight: 1                       # 权重（排序用）
         params:
             sidebar:
-                subtitle: Example description  # 侧边栏副标题
+                subtitle:  # 侧边栏副标题
     zh-cn:
         languageName: 中文
         title: 演示站点
@@ -76,8 +76,8 @@ params:
 
     # 侧边栏设置
     sidebar:
-        emoji: 🍥                      # 表情图标
-        subtitle: Lorem ipsum dolor sit amet, consectetur adipiscing elit.  # 副标题
+        emoji:                       # 表情图标
+        subtitle:   # 副标题
         avatar:
             enabled: true              # 是否显示头像
             local: true                # 是否使用本地图片
@@ -85,7 +85,7 @@ params:
 
     # 文章设置
     article:
-        math: false                    # 是否支持数学公式
+        math: true                    # 是否支持数学公式
         toc: true                      # 是否显示目录
         readingTime: true              # 是否显示阅读时间
         license:
@@ -94,8 +94,7 @@ params:
 
     # 评论系统配置
     comments:
-        enabled: true                  # 启用评论
-        provider: disqus               # 评论提供商
+        enabled: false                  # 启用评论
 
         # 各评论系统的具体配置
         disqusjs: {...}                # DisqusJS配置
@@ -158,7 +157,7 @@ menu:
     social:                            # 社交链接菜单
         - identifier: github
           name: GitHub
-          url: https://github.com/CaiJimmy/hugo-theme-stack
+          url: https://github.com/fantsing
           params:
               icon: brand-github       # 图标名称
 
