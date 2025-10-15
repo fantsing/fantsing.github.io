@@ -3,7 +3,7 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>http://localhost:1313/</loc>
-    <lastmod>2020-10-09T00:00:00+00:00</lastmod>
+    <lastmod>2025-10-01T00:00:00+00:00</lastmod>
     <xhtml:link
                 rel="alternate"
                 hreflang="zh-cn"
@@ -11,30 +11,18 @@
                 />
     <xhtml:link
                 rel="alternate"
-                hreflang="ar"
-                href="http://localhost:1313/ar/"
-                />
-    <xhtml:link
-                rel="alternate"
                 hreflang="en"
                 href="http://localhost:1313/"
                 />
   </url><url>
-    <loc>http://localhost:1313/archives/</loc>
-    <lastmod>2019-05-28T00:00:00+00:00</lastmod>
+    <loc>http://localhost:1313/about/</loc>
+    <lastmod>2025-10-01T00:00:00+00:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/page/</loc>
-    <lastmod>2020-10-09T00:00:00+00:00</lastmod>
-    <xhtml:link
-                rel="alternate"
-                hreflang="zh-cn"
-                href="http://localhost:1313/zh-cn/page/"
-                />
-    <xhtml:link
-                rel="alternate"
-                hreflang="en"
-                href="http://localhost:1313/page/"
-                />
+    <lastmod>2025-10-01T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/archives/</loc>
+    <lastmod>2019-05-28T00:00:00+00:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/categories/</loc>
     <lastmod>2019-03-11T00:00:00+00:00</lastmod>
@@ -42,11 +30,6 @@
                 rel="alternate"
                 hreflang="zh-cn"
                 href="http://localhost:1313/zh-cn/categories/"
-                />
-    <xhtml:link
-                rel="alternate"
-                hreflang="ar"
-                href="http://localhost:1313/ar/categories/"
                 />
     <xhtml:link
                 rel="alternate"
@@ -75,11 +58,6 @@
                 />
     <xhtml:link
                 rel="alternate"
-                hreflang="ar"
-                href="http://localhost:1313/ar/post/"
-                />
-    <xhtml:link
-                rel="alternate"
                 hreflang="en"
                 href="http://localhost:1313/post/"
                 />
@@ -96,11 +74,6 @@
                 />
     <xhtml:link
                 rel="alternate"
-                hreflang="ar"
-                href="http://localhost:1313/ar/tags/"
-                />
-    <xhtml:link
-                rel="alternate"
                 hreflang="en"
                 href="http://localhost:1313/tags/"
                 />
@@ -113,16 +86,6 @@
   </url><url>
     <loc>http://localhost:1313/p/placeholder-text/</loc>
     <lastmod>2019-03-09T00:00:00+00:00</lastmod>
-    <xhtml:link
-                rel="alternate"
-                hreflang="ar"
-                href="http://localhost:1313/ar/p/%D9%85%D8%AB%D8%A7%D9%84-%D9%86%D8%B5/"
-                />
-    <xhtml:link
-                rel="alternate"
-                hreflang="en"
-                href="http://localhost:1313/p/placeholder-text/"
-                />
   </url><url>
     <loc>http://localhost:1313/tags/tag-with-whitespaces/</loc>
     <lastmod>2019-03-09T00:00:00+00:00</lastmod>
@@ -154,21 +117,6 @@
   </url><url>
     <loc>http://localhost:1313/p/emoji-support/</loc>
     <lastmod>2019-03-05T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>http://localhost:1313/about/</loc>
-    <lastmod>2020-10-09T00:00:00+00:00</lastmod>
-    <xhtml:link
-                rel="alternate"
-                hreflang="zh-cn"
-                href="http://localhost:1313/zh-cn/%E5%85%B3%E4%BA%8E/"
-                />
-    <xhtml:link
-                rel="alternate"
-                hreflang="en"
-                href="http://localhost:1313/about/"
-                />
-  </url><url>
-    <loc>http://localhost:1313/links/</loc>
   </url><url>
     <loc>http://localhost:1313/search/</loc>
   </url>
