@@ -151,7 +151,7 @@ menu:
           name: Email
           url: 15542277303@163.com
           params:
-              icon: brand-emial       # 图标名称
+              icon: brand-email       # 图标名称
 
 # 相关文章设置
 related:
