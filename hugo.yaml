@@ -147,6 +147,12 @@ menu:
           params:
               icon: brand-github       # 图标名称
 
+        - identifier: email
+          name: Email
+          url: 15542277303@163.com
+          params:
+              icon: brand-emial       # 图标名称
+
 # 相关文章设置
 related:
     includeNewer: true                 # 是否包含较新文章
