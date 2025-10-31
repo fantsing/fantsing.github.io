@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="VGG学习 概论 2014年，牛津大学计算机视觉组(Visual Geometry Group)和Google DeepMind公司的研究员Karen Simonyan和Andrew Zisserman研发出了新的深度卷积神经网络：VGGNet,,并在ILSVRC2014比赛分类项目中取得了第二名的好成绩(第一名是同年提出的GoogLeNet模型)，同时在定位项目中获得第一名。VGGNet模型通过探索卷积神经网络的深度与性能之间的关系，成功构建了16~19层深的卷积神经网络，并证明了增加网络深度可以在一定程度上提高网络性能，大幅降低错误率。此外，VGGNet具有很强的拓展性和泛化性，适用于其它类型的图像数据。至今，VGGNet仍然被广泛应用于图像特征提取。VGGNet可以看成是加深版本的AlexNet,都是由卷积层、全连接层两大部分构成。\n论文链接：[1409.1556] Very Deep Convolutional Networks for Large-Scale Image Recognition\n原理学习 网络退化 残差连接 结构简洁，VGG网络中，所有卷积层的卷积核大小，步长和填充都相同，并且通过使用最大池化对卷积层进行分层。所有隐藏层的激活单元都采用RLU函数。由于其极简且清晰的结构，VGGNet至今仍广泛用于图像特征提取。 小卷积核，VGGNet中所有的卷积层都使用了小卷积核(3×3)。这种设计有两个优点：一方面，可以大幅减少参数量；另一方面，节省下来的参数可以用于堆叠更多的卷积层，进一步增加了网络的深度和非线性映射能力，从而提高了网络的表达和特征提取能力。 VGG模型中指出两个3×3的卷积堆叠获得的感受野大小，相当于一个5×5的卷积：而3个5×5卷积的堆叠获取到的感受野相当于一个7×7的卷积。这样可以增加非线性映射，也能很好地减少参数(例如5×5的参数为25个，而2个3×3的参数为18)。\n小池化核、相比AlexNet的3×3的池化核，VGGNet全部采用2×2的池化核。 通道数多、VGGNet第一层的通道数为64，后面每层都进行了翻倍，最多达到512个通道。相比较于AlexNet和ZFNet最多得到的通道数是256，VGGNet翻倍的通道数使得更多的信息可以被卷积操作提取出来。 层数更深、特征图更多、网络中，卷积层专注于扩大特征图的通道数、池化层专注于缩小特征图的宽和高，使得模型架构上更深更宽的同时，控制了计算量的增加规模。 模型结构 容易部署到硬件，轻量化！\n代码实现 也是同上一篇AlexNet的参考代码一致，链接：GitHub - Arwin-Yu/Deep-Learning-Image-Classification-Models-Based-CNN-or-Attention: This project organizes classic images classification neural networks based on convolution or attention, and writes training and inference python scripts\n主要研究“vggnet.py”文件\n1 2 3 4 5 6 7 8 9 10 import torch.nn as nn import torch # 官方提供的预训练权重 model_urls = { &#39;vgg11&#39;: &#39;https://download.pytorch.org/models/vgg11-bbd30ac9.pth&#39;, &#39;vgg13&#39;: &#39;https://download.pytorch.org/models/vgg13-c768596a.pth&#39;, &#39;vgg16&#39;: &#39;https://download.pytorch.org/models/vgg16-397923af.pth&#39;, &#39;vgg19&#39;: &#39;https://download.pytorch.org/models/vgg19-dcbb9e9d.pth&#39; } 类的定义 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 class VGG(nn.Module): def __init__(self, features, num_classes=1000, init_weights=False): super(VGG, self).__init__() self.features = features # 特征提取部分（卷积层和池化层） self.classifier = nn.Sequential( # 分类部分（全连接层） nn.Linear(512*7*7, 4096), nn.ReLU(True), nn.Dropout(p=0.5), nn.Linear(4096, 4096), nn.ReLU(True), nn.Dropout(p=0.5), nn.Linear(4096, num_classes) ) if init_weights: self._initialize_weights() # 权重初始化 features：这是网络的特征提取部分，由卷积层和池化层组成 classifier：这是分类器部分，由全连接层组成 num_classes：分类的类别数，默认1000（对应ImageNet数据集） 前向传播方法 1 2 3 4 5 6 7 8 def forward(self, x): # N x 3 x 224 x 224 输入图像：批量大小x通道数x高度x宽度 x = self.features(x) # 通过特征提取部分 # N x 512 x 7 x 7 特征提取后的输出 x = torch.flatten(x, start_dim=1) # 展平操作，从第1维度开始 # N x 512*7*7 展平后的向量 x = self.classifier(x) # 通过分类器 return x 前向传播定义了数据在网络中的流动路径 torch.flatten将卷积输出的多维特征转换为一维向量，以便输入全连接层 权重初始化方法 1 2 3 4 5 6 7 8 9 def _initialize_weights(self): for m in self.modules(): if isinstance(m, nn.Conv2d): # 卷积层权重初始化 nn.init.xavier_uniform_(m.weight) # Xavier均匀分布初始化 if m.bias is not None: nn.init.constant_(m.bias, 0) # 偏置初始化为0 elif isinstance(m, nn.Linear): # 全连接层权重初始化 nn.init.xavier_uniform_(m.weight) nn.init.constant_(m.bias, 0) 初始化权重对网络训练非常重要 这里使用Xavier初始化方法，适合ReLU激活函数 生成特征提取层 1 2 3 4 5 6 7 8 9 10 11 def make_features(cfg: list): layers = [] in_channels = 3 # 输入图像是RGB三通道 for v in cfg: if v == &#34;M&#34;: # 如果遇到&#34;M&#34;，添加池化层 layers += [nn.MaxPool2d(kernel_size=2, stride=2)] else: # 否则添加卷积层和激活函数 conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1) layers += [conv2d, nn.ReLU(True)] in_channels = v # 更新输入通道数为当前输出通道数 return nn.Sequential(*layers) # 将所有层按顺序包装 这个函数根据配置列表cfg生成特征提取部分 遍历配置列表，遇到&quot;M&quot;就添加池化层，否则添加卷积层+ReLU激活函数 kernel_size=3, padding=1保证卷积后特征图大小不变 网络配置参数 1 2 3 4 5 6 cfgs = { &#39;vgg11&#39;: [64, &#39;M&#39;, 128, &#39;M&#39;, 256, 256, &#39;M&#39;, 512, 512, &#39;M&#39;, 512, 512, &#39;M&#39;], &#39;vgg13&#39;: [64, 64, &#39;M&#39;, 128, 128, &#39;M&#39;, 256, 256, &#39;M&#39;, 512, 512, &#39;M&#39;, 512, 512, &#39;M&#39;], &#39;vgg16&#39;: [64, 64, &#39;M&#39;, 128, 128, &#39;M&#39;, 256, 256, 256, &#39;M&#39;, 512, 512, 512, &#39;M&#39;, 512, 512, 512, &#39;M&#39;], &#39;vgg19&#39;: [64, 64, &#39;M&#39;, 128, 128, &#39;M&#39;, 256, 256, 256, 256, &#39;M&#39;, 512, 512, 512, 512, &#39;M&#39;, 512, 512, 512, 512, &#39;M&#39;], } 这些配置定义了不同深度的VGG网络 数字表示卷积层的输出通道数 &ldquo;M&quot;表示最大池化层 数字的个数对应卷积层的数量，比如VGG16有16个卷积层和全连接层 模型创建函数 1 2 3 4 5 6 def vgg11(num_classes): cfg = cfgs[&#34;vgg11&#34;] model = VGG(make_features(cfg), num_classes=num_classes) return model # vgg13、vgg16、vgg19函数结构类似 这些函数提供了便捷的方式创建不同深度的VGG模型 使用时只需调用对应的函数，如model = vgg16(10)创建一个用于10分类的VGG16模型 总结 全部使用3×3的小卷积核，多个小卷积核堆叠相当于一个大卷积核的感受野 采用&quot;卷积层堆叠+池化层&quot;的结构，逐步减小特征图尺寸，增加通道数 网络深度是其重要特征，从11层到19层不等 全连接层部分结构固定，都是两个4096维的隐藏层 ">
+<title>VGG学习</title>
+
+<link rel='canonical' href='http://localhost:1313/p/vgg%E5%AD%A6%E4%B9%A0/'>
+
+<link rel="stylesheet" href="/scss/style.min.6a692fd055deae459f2a9767f57f3855ba80cafd5041317f24f7360f6ca47cdf.css"><meta property='og:title' content="VGG学习">
+<meta property='og:description' content="VGG学习 概论 2014年，牛津大学计算机视觉组(Visual Geometry Group)和Google DeepMind公司的研究员Karen Simonyan和Andrew Zisserman研发出了新的深度卷积神经网络：VGGNet,,并在ILSVRC2014比赛分类项目中取得了第二名的好成绩(第一名是同年提出的GoogLeNet模型)，同时在定位项目中获得第一名。VGGNet模型通过探索卷积神经网络的深度与性能之间的关系，成功构建了16~19层深的卷积神经网络，并证明了增加网络深度可以在一定程度上提高网络性能，大幅降低错误率。此外，VGGNet具有很强的拓展性和泛化性，适用于其它类型的图像数据。至今，VGGNet仍然被广泛应用于图像特征提取。VGGNet可以看成是加深版本的AlexNet,都是由卷积层、全连接层两大部分构成。\n论文链接：[1409.1556] Very Deep Convolutional Networks for Large-Scale Image Recognition\n原理学习 网络退化 残差连接 结构简洁，VGG网络中，所有卷积层的卷积核大小，步长和填充都相同，并且通过使用最大池化对卷积层进行分层。所有隐藏层的激活单元都采用RLU函数。由于其极简且清晰的结构，VGGNet至今仍广泛用于图像特征提取。 小卷积核，VGGNet中所有的卷积层都使用了小卷积核(3×3)。这种设计有两个优点：一方面，可以大幅减少参数量；另一方面，节省下来的参数可以用于堆叠更多的卷积层，进一步增加了网络的深度和非线性映射能力，从而提高了网络的表达和特征提取能力。 VGG模型中指出两个3×3的卷积堆叠获得的感受野大小，相当于一个5×5的卷积：而3个5×5卷积的堆叠获取到的感受野相当于一个7×7的卷积。这样可以增加非线性映射，也能很好地减少参数(例如5×5的参数为25个，而2个3×3的参数为18)。\n小池化核、相比AlexNet的3×3的池化核，VGGNet全部采用2×2的池化核。 通道数多、VGGNet第一层的通道数为64，后面每层都进行了翻倍，最多达到512个通道。相比较于AlexNet和ZFNet最多得到的通道数是256，VGGNet翻倍的通道数使得更多的信息可以被卷积操作提取出来。 层数更深、特征图更多、网络中，卷积层专注于扩大特征图的通道数、池化层专注于缩小特征图的宽和高，使得模型架构上更深更宽的同时，控制了计算量的增加规模。 模型结构 容易部署到硬件，轻量化！\n代码实现 也是同上一篇AlexNet的参考代码一致，链接：GitHub - Arwin-Yu/Deep-Learning-Image-Classification-Models-Based-CNN-or-Attention: This project organizes classic images classification neural networks based on convolution or attention, and writes training and inference python scripts\n主要研究“vggnet.py”文件\n1 2 3 4 5 6 7 8 9 10 import torch.nn as nn import torch # 官方提供的预训练权重 model_urls = { &#39;vgg11&#39;: &#39;https://download.pytorch.org/models/vgg11-bbd30ac9.pth&#39;, &#39;vgg13&#39;: &#39;https://download.pytorch.org/models/vgg13-c768596a.pth&#39;, &#39;vgg16&#39;: &#39;https://download.pytorch.org/models/vgg16-397923af.pth&#39;, &#39;vgg19&#39;: &#39;https://download.pytorch.org/models/vgg19-dcbb9e9d.pth&#39; } 类的定义 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 class VGG(nn.Module): def __init__(self, features, num_classes=1000, init_weights=False): super(VGG, self).__init__() self.features = features # 特征提取部分（卷积层和池化层） self.classifier = nn.Sequential( # 分类部分（全连接层） nn.Linear(512*7*7, 4096), nn.ReLU(True), nn.Dropout(p=0.5), nn.Linear(4096, 4096), nn.ReLU(True), nn.Dropout(p=0.5), nn.Linear(4096, num_classes) ) if init_weights: self._initialize_weights() # 权重初始化 features：这是网络的特征提取部分，由卷积层和池化层组成 classifier：这是分类器部分，由全连接层组成 num_classes：分类的类别数，默认1000（对应ImageNet数据集） 前向传播方法 1 2 3 4 5 6 7 8 def forward(self, x): # N x 3 x 224 x 224 输入图像：批量大小x通道数x高度x宽度 x = self.features(x) # 通过特征提取部分 # N x 512 x 7 x 7 特征提取后的输出 x = torch.flatten(x, start_dim=1) # 展平操作，从第1维度开始 # N x 512*7*7 展平后的向量 x = self.classifier(x) # 通过分类器 return x 前向传播定义了数据在网络中的流动路径 torch.flatten将卷积输出的多维特征转换为一维向量，以便输入全连接层 权重初始化方法 1 2 3 4 5 6 7 8 9 def _initialize_weights(self): for m in self.modules(): if isinstance(m, nn.Conv2d): # 卷积层权重初始化 nn.init.xavier_uniform_(m.weight) # Xavier均匀分布初始化 if m.bias is not None: nn.init.constant_(m.bias, 0) # 偏置初始化为0 elif isinstance(m, nn.Linear): # 全连接层权重初始化 nn.init.xavier_uniform_(m.weight) nn.init.constant_(m.bias, 0) 初始化权重对网络训练非常重要 这里使用Xavier初始化方法，适合ReLU激活函数 生成特征提取层 1 2 3 4 5 6 7 8 9 10 11 def make_features(cfg: list): layers = [] in_channels = 3 # 输入图像是RGB三通道 for v in cfg: if v == &#34;M&#34;: # 如果遇到&#34;M&#34;，添加池化层 layers += [nn.MaxPool2d(kernel_size=2, stride=2)] else: # 否则添加卷积层和激活函数 conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1) layers += [conv2d, nn.ReLU(True)] in_channels = v # 更新输入通道数为当前输出通道数 return nn.Sequential(*layers) # 将所有层按顺序包装 这个函数根据配置列表cfg生成特征提取部分 遍历配置列表，遇到&quot;M&quot;就添加池化层，否则添加卷积层+ReLU激活函数 kernel_size=3, padding=1保证卷积后特征图大小不变 网络配置参数 1 2 3 4 5 6 cfgs = { &#39;vgg11&#39;: [64, &#39;M&#39;, 128, &#39;M&#39;, 256, 256, &#39;M&#39;, 512, 512, &#39;M&#39;, 512, 512, &#39;M&#39;], &#39;vgg13&#39;: [64, 64, &#39;M&#39;, 128, 128, &#39;M&#39;, 256, 256, &#39;M&#39;, 512, 512, &#39;M&#39;, 512, 512, &#39;M&#39;], &#39;vgg16&#39;: [64, 64, &#39;M&#39;, 128, 128, &#39;M&#39;, 256, 256, 256, &#39;M&#39;, 512, 512, 512, &#39;M&#39;, 512, 512, 512, &#39;M&#39;], &#39;vgg19&#39;: [64, 64, &#39;M&#39;, 128, 128, &#39;M&#39;, 256, 256, 256, 256, &#39;M&#39;, 512, 512, 512, 512, &#39;M&#39;, 512, 512, 512, 512, &#39;M&#39;], } 这些配置定义了不同深度的VGG网络 数字表示卷积层的输出通道数 &ldquo;M&quot;表示最大池化层 数字的个数对应卷积层的数量，比如VGG16有16个卷积层和全连接层 模型创建函数 1 2 3 4 5 6 def vgg11(num_classes): cfg = cfgs[&#34;vgg11&#34;] model = VGG(make_features(cfg), num_classes=num_classes) return model # vgg13、vgg16、vgg19函数结构类似 这些函数提供了便捷的方式创建不同深度的VGG模型 使用时只需调用对应的函数，如model = vgg16(10)创建一个用于10分类的VGG16模型 总结 全部使用3×3的小卷积核，多个小卷积核堆叠相当于一个大卷积核的感受野 采用&quot;卷积层堆叠+池化层&quot;的结构，逐步减小特征图尺寸，增加通道数 网络深度是其重要特征，从11层到19层不等 全连接层部分结构固定，都是两个4096维的隐藏层 ">
+<meta property='og:url' content='http://localhost:1313/p/vgg%E5%AD%A6%E4%B9%A0/'>
+<meta property='og:site_name' content='Lee Sivan&#39;s Blog'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:published_time' content='2025-10-03T13:40:43&#43;08:00'/><meta property='article:modified_time' content='2025-10-03T13:40:43&#43;08:00'/>
+<meta name="twitter:title" content="VGG学习">
+<meta name="twitter:description" content="VGG学习 概论 2014年，牛津大学计算机视觉组(Visual Geometry Group)和Google DeepMind公司的研究员Karen Simonyan和Andrew Zisserman研发出了新的深度卷积神经网络：VGGNet,,并在ILSVRC2014比赛分类项目中取得了第二名的好成绩(第一名是同年提出的GoogLeNet模型)，同时在定位项目中获得第一名。VGGNet模型通过探索卷积神经网络的深度与性能之间的关系，成功构建了16~19层深的卷积神经网络，并证明了增加网络深度可以在一定程度上提高网络性能，大幅降低错误率。此外，VGGNet具有很强的拓展性和泛化性，适用于其它类型的图像数据。至今，VGGNet仍然被广泛应用于图像特征提取。VGGNet可以看成是加深版本的AlexNet,都是由卷积层、全连接层两大部分构成。\n论文链接：[1409.1556] Very Deep Convolutional Networks for Large-Scale Image Recognition\n原理学习 网络退化 残差连接 结构简洁，VGG网络中，所有卷积层的卷积核大小，步长和填充都相同，并且通过使用最大池化对卷积层进行分层。所有隐藏层的激活单元都采用RLU函数。由于其极简且清晰的结构，VGGNet至今仍广泛用于图像特征提取。 小卷积核，VGGNet中所有的卷积层都使用了小卷积核(3×3)。这种设计有两个优点：一方面，可以大幅减少参数量；另一方面，节省下来的参数可以用于堆叠更多的卷积层，进一步增加了网络的深度和非线性映射能力，从而提高了网络的表达和特征提取能力。 VGG模型中指出两个3×3的卷积堆叠获得的感受野大小，相当于一个5×5的卷积：而3个5×5卷积的堆叠获取到的感受野相当于一个7×7的卷积。这样可以增加非线性映射，也能很好地减少参数(例如5×5的参数为25个，而2个3×3的参数为18)。\n小池化核、相比AlexNet的3×3的池化核，VGGNet全部采用2×2的池化核。 通道数多、VGGNet第一层的通道数为64，后面每层都进行了翻倍，最多达到512个通道。相比较于AlexNet和ZFNet最多得到的通道数是256，VGGNet翻倍的通道数使得更多的信息可以被卷积操作提取出来。 层数更深、特征图更多、网络中，卷积层专注于扩大特征图的通道数、池化层专注于缩小特征图的宽和高，使得模型架构上更深更宽的同时，控制了计算量的增加规模。 模型结构 容易部署到硬件，轻量化！\n代码实现 也是同上一篇AlexNet的参考代码一致，链接：GitHub - Arwin-Yu/Deep-Learning-Image-Classification-Models-Based-CNN-or-Attention: This project organizes classic images classification neural networks based on convolution or attention, and writes training and inference python scripts\n主要研究“vggnet.py”文件\n1 2 3 4 5 6 7 8 9 10 import torch.nn as nn import torch # 官方提供的预训练权重 model_urls = { &#39;vgg11&#39;: &#39;https://download.pytorch.org/models/vgg11-bbd30ac9.pth&#39;, &#39;vgg13&#39;: &#39;https://download.pytorch.org/models/vgg13-c768596a.pth&#39;, &#39;vgg16&#39;: &#39;https://download.pytorch.org/models/vgg16-397923af.pth&#39;, &#39;vgg19&#39;: &#39;https://download.pytorch.org/models/vgg19-dcbb9e9d.pth&#39; } 类的定义 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 class VGG(nn.Module): def __init__(self, features, num_classes=1000, init_weights=False): super(VGG, self).__init__() self.features = features # 特征提取部分（卷积层和池化层） self.classifier = nn.Sequential( # 分类部分（全连接层） nn.Linear(512*7*7, 4096), nn.ReLU(True), nn.Dropout(p=0.5), nn.Linear(4096, 4096), nn.ReLU(True), nn.Dropout(p=0.5), nn.Linear(4096, num_classes) ) if init_weights: self._initialize_weights() # 权重初始化 features：这是网络的特征提取部分，由卷积层和池化层组成 classifier：这是分类器部分，由全连接层组成 num_classes：分类的类别数，默认1000（对应ImageNet数据集） 前向传播方法 1 2 3 4 5 6 7 8 def forward(self, x): # N x 3 x 224 x 224 输入图像：批量大小x通道数x高度x宽度 x = self.features(x) # 通过特征提取部分 # N x 512 x 7 x 7 特征提取后的输出 x = torch.flatten(x, start_dim=1) # 展平操作，从第1维度开始 # N x 512*7*7 展平后的向量 x = self.classifier(x) # 通过分类器 return x 前向传播定义了数据在网络中的流动路径 torch.flatten将卷积输出的多维特征转换为一维向量，以便输入全连接层 权重初始化方法 1 2 3 4 5 6 7 8 9 def _initialize_weights(self): for m in self.modules(): if isinstance(m, nn.Conv2d): # 卷积层权重初始化 nn.init.xavier_uniform_(m.weight) # Xavier均匀分布初始化 if m.bias is not None: nn.init.constant_(m.bias, 0) # 偏置初始化为0 elif isinstance(m, nn.Linear): # 全连接层权重初始化 nn.init.xavier_uniform_(m.weight) nn.init.constant_(m.bias, 0) 初始化权重对网络训练非常重要 这里使用Xavier初始化方法，适合ReLU激活函数 生成特征提取层 1 2 3 4 5 6 7 8 9 10 11 def make_features(cfg: list): layers = [] in_channels = 3 # 输入图像是RGB三通道 for v in cfg: if v == &#34;M&#34;: # 如果遇到&#34;M&#34;，添加池化层 layers += [nn.MaxPool2d(kernel_size=2, stride=2)] else: # 否则添加卷积层和激活函数 conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1) layers += [conv2d, nn.ReLU(True)] in_channels = v # 更新输入通道数为当前输出通道数 return nn.Sequential(*layers) # 将所有层按顺序包装 这个函数根据配置列表cfg生成特征提取部分 遍历配置列表，遇到&quot;M&quot;就添加池化层，否则添加卷积层+ReLU激活函数 kernel_size=3, padding=1保证卷积后特征图大小不变 网络配置参数 1 2 3 4 5 6 cfgs = { &#39;vgg11&#39;: [64, &#39;M&#39;, 128, &#39;M&#39;, 256, 256, &#39;M&#39;, 512, 512, &#39;M&#39;, 512, 512, &#39;M&#39;], &#39;vgg13&#39;: [64, 64, &#39;M&#39;, 128, 128, &#39;M&#39;, 256, 256, &#39;M&#39;, 512, 512, &#39;M&#39;, 512, 512, &#39;M&#39;], &#39;vgg16&#39;: [64, 64, &#39;M&#39;, 128, 128, &#39;M&#39;, 256, 256, 256, &#39;M&#39;, 512, 512, 512, &#39;M&#39;, 512, 512, 512, &#39;M&#39;], &#39;vgg19&#39;: [64, 64, &#39;M&#39;, 128, 128, &#39;M&#39;, 256, 256, 256, 256, &#39;M&#39;, 512, 512, 512, 512, &#39;M&#39;, 512, 512, 512, 512, &#39;M&#39;], } 这些配置定义了不同深度的VGG网络 数字表示卷积层的输出通道数 &ldquo;M&quot;表示最大池化层 数字的个数对应卷积层的数量，比如VGG16有16个卷积层和全连接层 模型创建函数 1 2 3 4 5 6 def vgg11(num_classes): cfg = cfgs[&#34;vgg11&#34;] model = VGG(make_features(cfg), num_classes=num_classes) return model # vgg13、vgg16、vgg19函数结构类似 这些函数提供了便捷的方式创建不同深度的VGG模型 使用时只需调用对应的函数，如model = vgg16(10)创建一个用于10分类的VGG16模型 总结 全部使用3×3的小卷积核，多个小卷积核堆叠相当于一个大卷积核的感受野 采用&quot;卷积层堆叠+池化层&quot;的结构，逐步减小特征图尺寸，增加通道数 网络深度是其重要特征，从11层到19层不等 全连接层部分结构固定，都是两个4096维的隐藏层 ">
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="Toggle Menu">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/avatar_hu_c14aa3b58f97651b.png" width="300"
+                            height="311" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">Lee Sivan&#39;s Blog</a></h1>
+            <h2 class="site-description"></h2>
+        </div>
+    </header><ol class="menu-social">
+            
+                <li>
+                    <a 
+                        href='15542277303@163.com'
+                        target="_blank"
+                        title="Email"
+                        rel="me"
+                    >
+                        
+                        
+                            <?xml version="1.0" encoding="utf-8"?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+<svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M4 7.00005L10.2 11.65C11.2667 12.45 12.7333 12.45 13.8 11.65L20 7" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="3" y="5" width="18" height="14" rx="2" stroke="#000000" stroke-width="2" stroke-linecap="round"/>
+</svg>
+                        
+                    </a>
+                </li>
+            
+                <li>
+                    <a 
+                        href='https://github.com/fantsing'
+                        target="_blank"
+                        title="GitHub"
+                        rel="me"
+                    >
+                        
+                        
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5" />
+</svg>
+
+
+
+                        
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>Home</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/about/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>About</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>Archives</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>Search</span>
+            </a>
+        </li>
+        
+        <li class="menu-bottom-section">
+            <ol class="menu">
+
+                
+                    <li id="dark-mode-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <span>Dark Mode</span>
+                    </li>
+                
+            </ol>
+        </li>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">Table of contents</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li><a href="#概论">概论</a></li>
+    <li><a href="#原理学习">原理学习</a>
+      <ol>
+        <li><a href="#网络退化">网络退化</a></li>
+        <li><a href="#残差连接">残差连接</a></li>
+        <li><a href="#模型结构">模型结构</a></li>
+      </ol>
+    </li>
+    <li><a href="#代码实现">代码实现</a>
+      <ol>
+        <li><a href="#类的定义">类的定义</a></li>
+        <li><a href="#前向传播方法">前向传播方法</a></li>
+        <li><a href="#权重初始化方法">权重初始化方法</a></li>
+        <li><a href="#生成特征提取层">生成特征提取层</a></li>
+        <li><a href="#网络配置参数">网络配置参数</a></li>
+        <li><a href="#模型创建函数">模型创建函数</a></li>
+        <li><a href="#总结">总结</a></li>
+      </ol>
+    </li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+            <main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/p/vgg%E5%AD%A6%E4%B9%A0/">VGG学习</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">Oct 03, 2025</time>
+            </div>
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+                <time class="article-time--reading">
+                    2 minute read
+                </time>
+            </div>
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <h1 id="vgg学习">VGG学习
+</h1><h2 id="概论">概论
+</h2><p>2014年，牛津大学计算机视觉组(Visual Geometry Group)和Google DeepMind公司的研究员Karen Simonyan和Andrew Zisserman研发出了新的深度卷积神经网络：VGGNet,,并在ILSVRC2014比赛分类项目中取得了第二名的好成绩(第一名是同年提出的GoogLeNet模型)，同时在定位项目中获得第一名。VGGNet模型通过探索卷积神经网络的深度与性能之间的关系，成功构建了16~19层深的卷积神经网络，并证明了<strong>增加网络深度可以在一定程度上提高网络性能，大幅降低错误率</strong>。此外，VGGNet具有很强的拓展性和泛化性，适用于其它类型的图像数据。至今，VGGNet仍然被广泛应用于图像特征提取。VGGNet可以看成是加深版本的AlexNet,都是由卷积层、全连接层两大部分构成。</p>
+<p>论文链接：[<a class="link" href="https://arxiv.org/abs/1409.1556"  target="_blank" rel="noopener"
+    >1409.1556] Very Deep Convolutional Networks for Large-Scale Image Recognition</a></p>
+<h2 id="原理学习">原理学习
+</h2><h3 id="网络退化">网络退化
+</h3><p><img src="/images/5.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="5"
+	
+	
+></p>
+<h3 id="残差连接">残差连接
+</h3><ul>
+<li>结构简洁，VGG网络中，所有卷积层的卷积核大小，步长和填充都相同，并且通过使用最大池化对卷积层进行分层。所有隐藏层的激活单元都采用RLU函数。由于其极简且清晰的结构，VGGNet至今仍广泛用于图像特征提取。</li>
+<li>小卷积核，VGGNet中所有的卷积层都使用了小卷积核(3×3)。这种设计有两个优点：一方面，可以大幅减少参数量；另一方面，节省下来的参数可以用于堆叠更多的卷积层，进一步增加了网络的深度和非线性映射能力，从而提高了网络的表达和特征提取能力。</li>
+</ul>
+<p>VGG模型中指出两个3×3的卷积堆叠获得的感受野大小，相当于一个5×5的卷积：而3个5×5卷积的堆叠获取到的感受野相当于一个7×7的卷积。这样可以增加非线性映射，也能很好地减少参数(例如5×5的参数为25个，而2个3×3的参数为18)。</p>
+<ul>
+<li>小池化核、相比AlexNet的3×3的池化核，VGGNet全部采用2×2的池化核。</li>
+<li>通道数多、VGGNet第一层的通道数为64，后面每层都进行了翻倍，最多达到512个通道。相比较于AlexNet和ZFNet最多得到的通道数是256，VGGNet翻倍的通道数使得更多的信息可以被卷积操作提取出来。</li>
+<li>层数更深、特征图更多、网络中，卷积层专注于扩大特征图的通道数、池化层专注于缩小特征图的宽和高，使得模型架构上更深更宽的同时，控制了计算量的增加规模。</li>
+</ul>
+<h3 id="模型结构">模型结构
+</h3><p><img src="/images/6.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="6"
+	
+	
+></p>
+<p>容易部署到硬件，轻量化！</p>
+<h2 id="代码实现">代码实现
+</h2><p>也是同上一篇AlexNet的参考代码一致，链接：<a class="link" href="https://github.com/Arwin-Yu/Deep-Learning-Image-Classification-Models-Based-CNN-or-Attention"  target="_blank" rel="noopener"
+    >GitHub - Arwin-Yu/Deep-Learning-Image-Classification-Models-Based-CNN-or-Attention: This project organizes classic images classification neural networks based on convolution or attention, and writes training and inference python scripts</a></p>
+<p>主要研究“vggnet.py”文件</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">torch</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 官方提供的预训练权重</span>
+</span></span><span class="line"><span class="cl"><span class="n">model_urls</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="s1">&#39;vgg11&#39;</span><span class="p">:</span> <span class="s1">&#39;https://download.pytorch.org/models/vgg11-bbd30ac9.pth&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="s1">&#39;vgg13&#39;</span><span class="p">:</span> <span class="s1">&#39;https://download.pytorch.org/models/vgg13-c768596a.pth&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="s1">&#39;vgg16&#39;</span><span class="p">:</span> <span class="s1">&#39;https://download.pytorch.org/models/vgg16-397923af.pth&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="s1">&#39;vgg19&#39;</span><span class="p">:</span> <span class="s1">&#39;https://download.pytorch.org/models/vgg19-dcbb9e9d.pth&#39;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="类的定义">类的定义
+</h3><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">VGG</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">init_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">        <span class="nb">super</span><span class="p">(</span><span class="n">VGG</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="bp">self</span><span class="o">.</span><span class="n">features</span> <span class="o">=</span> <span class="n">features</span>  <span class="c1"># 特征提取部分（卷积层和池化层）</span>
+</span></span><span class="line"><span class="cl">        <span class="bp">self</span><span class="o">.</span><span class="n">classifier</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>  <span class="c1"># 分类部分（全连接层）</span>
+</span></span><span class="line"><span class="cl">            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">512</span><span class="o">*</span><span class="mi">7</span><span class="o">*</span><span class="mi">7</span><span class="p">,</span> <span class="mi">4096</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">            <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">4096</span><span class="p">,</span> <span class="mi">4096</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">            <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">4096</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="n">init_weights</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_weights</span><span class="p">()</span>  <span class="c1"># 权重初始化</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li><code>features</code>：这是网络的特征提取部分，由卷积层和池化层组成</li>
+<li><code>classifier</code>：这是分类器部分，由全连接层组成</li>
+<li><code>num_classes</code>：分类的类别数，默认1000（对应ImageNet数据集）</li>
+</ul>
+<h3 id="前向传播方法">前向传播方法
+</h3><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># N x 3 x 224 x 224  输入图像：批量大小x通道数x高度x宽度</span>
+</span></span><span class="line"><span class="cl">    <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">features</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># 通过特征提取部分</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># N x 512 x 7 x 7     特征提取后的输出</span>
+</span></span><span class="line"><span class="cl">    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">start_dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># 展平操作，从第1维度开始</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># N x 512*7*7        展平后的向量</span>
+</span></span><span class="line"><span class="cl">    <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">classifier</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># 通过分类器</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">x</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>前向传播定义了数据在网络中的流动路径</li>
+<li><code>torch.flatten</code>将卷积输出的多维特征转换为一维向量，以便输入全连接层</li>
+</ul>
+<h3 id="权重初始化方法">权重初始化方法
+</h3><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">_initialize_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modules</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">):</span>  <span class="c1"># 卷积层权重初始化</span>
+</span></span><span class="line"><span class="cl">            <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">xavier_uniform_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span>  <span class="c1"># Xavier均匀分布初始化</span>
+</span></span><span class="line"><span class="cl">            <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">bias</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">                <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">constant_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">bias</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>  <span class="c1"># 偏置初始化为0</span>
+</span></span><span class="line"><span class="cl">        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">):</span>  <span class="c1"># 全连接层权重初始化</span>
+</span></span><span class="line"><span class="cl">            <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">xavier_uniform_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">constant_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">bias</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>初始化权重对网络训练非常重要</li>
+<li>这里使用Xavier初始化方法，适合ReLU激活函数</li>
+</ul>
+<h3 id="生成特征提取层">生成特征提取层
+</h3><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">make_features</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="n">layers</span> <span class="o">=</span> <span class="p">[]</span>
+</span></span><span class="line"><span class="cl">    <span class="n">in_channels</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1"># 输入图像是RGB三通道</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">cfg</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="s2">&#34;M&#34;</span><span class="p">:</span>  <span class="c1"># 如果遇到&#34;M&#34;，添加池化层</span>
+</span></span><span class="line"><span class="cl">            <span class="n">layers</span> <span class="o">+=</span> <span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">MaxPool2d</span><span class="p">(</span><span class="n">kernel_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">)]</span>
+</span></span><span class="line"><span class="cl">        <span class="k">else</span><span class="p">:</span>  <span class="c1"># 否则添加卷积层和激活函数</span>
+</span></span><span class="line"><span class="cl">            <span class="n">conv2d</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="n">layers</span> <span class="o">+=</span> <span class="p">[</span><span class="n">conv2d</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="kc">True</span><span class="p">)]</span>
+</span></span><span class="line"><span class="cl">            <span class="n">in_channels</span> <span class="o">=</span> <span class="n">v</span>  <span class="c1"># 更新输入通道数为当前输出通道数</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">layers</span><span class="p">)</span>  <span class="c1"># 将所有层按顺序包装</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>这个函数根据配置列表<code>cfg</code>生成特征提取部分</li>
+<li>遍历配置列表，遇到&quot;M&quot;就添加池化层，否则添加卷积层+ReLU激活函数</li>
+<li><code>kernel_size=3, padding=1</code>保证卷积后特征图大小不变</li>
+</ul>
+<h3 id="网络配置参数">网络配置参数
+</h3><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="n">cfgs</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="s1">&#39;vgg11&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">],</span>   
+</span></span><span class="line"><span class="cl">    <span class="s1">&#39;vgg13&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">],</span>
+</span></span><span class="line"><span class="cl">    <span class="s1">&#39;vgg16&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">],</span>
+</span></span><span class="line"><span class="cl">    <span class="s1">&#39;vgg19&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">],</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>这些配置定义了不同深度的VGG网络</li>
+<li>数字表示卷积层的输出通道数</li>
+<li>&ldquo;M&quot;表示最大池化层</li>
+<li>数字的个数对应卷积层的数量，比如VGG16有16个卷积层和全连接层</li>
+</ul>
+<h3 id="模型创建函数">模型创建函数
+</h3><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">vgg11</span><span class="p">(</span><span class="n">num_classes</span><span class="p">):</span> 
+</span></span><span class="line"><span class="cl">    <span class="n">cfg</span> <span class="o">=</span> <span class="n">cfgs</span><span class="p">[</span><span class="s2">&#34;vgg11&#34;</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">    <span class="n">model</span> <span class="o">=</span> <span class="n">VGG</span><span class="p">(</span><span class="n">make_features</span><span class="p">(</span><span class="n">cfg</span><span class="p">),</span> <span class="n">num_classes</span><span class="o">=</span><span class="n">num_classes</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">model</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># vgg13、vgg16、vgg19函数结构类似</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>这些函数提供了便捷的方式创建不同深度的VGG模型</li>
+<li>使用时只需调用对应的函数，如<code>model = vgg16(10)</code>创建一个用于10分类的VGG16模型</li>
+</ul>
+<h3 id="总结">总结
+</h3><ol>
+<li>全部使用3×3的小卷积核，多个小卷积核堆叠相当于一个大卷积核的感受野</li>
+<li>采用&quot;卷积层堆叠+池化层&quot;的结构，逐步减小特征图尺寸，增加通道数</li>
+<li>网络深度是其重要特征，从11层到19层不等</li>
+<li>全连接层部分结构固定，都是两个4096维的隐藏层</li>
+</ol>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+
+    
+    <section class="article-copyright">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <path d="M14.5 9a3.5 4 0 1 0 0 6" />
+</svg>
+
+
+
+        <span>Licensed under CC BY-NC-SA 4.0</span>
+    </section>
+    </footer>
+
+
+    
+        <link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI&#43;WdtXRGWt2kTvGFasHpSy3SV"crossorigin="anonymous"
+            ><script 
+                src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG&#43;vnGctmUb0ZY0l8"crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"integrity="sha384-&#43;VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4&#43;/RRE05"crossorigin="anonymous"
+                defer
+                >
+            </script><script>
+    window.addEventListener("DOMContentLoaded", () => {
+	const mainArticleElement = document.querySelector(".main-article");
+        renderMathInElement(mainArticleElement, {
+            delimiters: [
+                { left: "$$", right: "$$", display: true },
+                { left: "$", right: "$", display: false },
+                { left: "\\(", right: "\\)", display: false },
+                { left: "\\[", right: "\\]", display: true }
+            ],
+            ignoredClasses: ["gist"]
+        });})
+</script>
+
+    
+</article>
+
+    
+
+    
+
+     
+    
+        
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2020 - 
+        
+        2025 Lee Sivan
+    </section>
+    
+    <section class="powerby">
+        Built with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> <br />
+        Theme <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.31.0">Stack</a></b> designed by <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a>
+    </section>
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/ts/main.3d43a4c340fa2445bd8771f06cfa9701c142ab408309ca21aa0c14c87ea44dc1.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+    </body>
+</html>
