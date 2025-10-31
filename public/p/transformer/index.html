@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
     <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset='utf-8'>
-<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="Transformer is a typical Seq2Seq model.\nAttention mechanism: Selectively focus on the important parts and ignore the unimportant ones.\nEmbedding: The process of mapping textual information into numerical information.\nQueries (query vectors), Keys (key vectors), Values (value vectors)\nStep 1 is to create three new vectors q, k, and v for each input vector of the encoder.\nStep 2 is to calculate a correlation score (Score) $$ Score_{1.1}=\\mathbf{q}_1 \\cdot \\mathbf{k}_1=|q_1||k_1|\\cos\\theta\\\\ Score_{1.2}=\\mathbf{q}_1 \\cdot \\mathbf{k}_2=|q_1||k_2|\\cos\\theta\\\\ ... $$ Step 3 is to divide the correlation score (Score) by 8, which will make the gradient during the model training more stable.\n">
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="基础知识学习了这篇博客\nCV攻城狮入门VIT(vision transformer)之旅——近年超火的Transformer你再不了解就晚了！ - 掘金\n论文参考：Attention Is All You Need\n1706.03762\n然后读Transformer底层代码\n环境导入\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 import copy import math import torch from torch import nn import torch.nn.functional as F import numpy as np #from torch.utils.tensorboard import SummaryWriter import utils_transformer as utils import math, copy, time import matplotlib.pyplot as plt print(&#34;PyTorch Version: &#34;,torch.__version__) device = torch.device(&#34;cuda:0&#34; if torch.cuda.is_available() else &#34;cpu&#34;) print(&#39;Device:&#39;, device) num_gpu = torch.cuda.device_count() print(&#39;Number of GPUs Available:&#39;, num_gpu) # # Default directory &#34;runs&#34; # writer = SummaryWriter() HyperParameters设置\n">
 <title>Transformer</title>
 
 <link rel='canonical' href='http://localhost:1313/p/transformer/'>
 
 <link rel="stylesheet" href="/scss/style.min.6a692fd055deae459f2a9767f57f3855ba80cafd5041317f24f7360f6ca47cdf.css"><meta property='og:title' content="Transformer">
-<meta property='og:description' content="Transformer is a typical Seq2Seq model.\nAttention mechanism: Selectively focus on the important parts and ignore the unimportant ones.\nEmbedding: The process of mapping textual information into numerical information.\nQueries (query vectors), Keys (key vectors), Values (value vectors)\nStep 1 is to create three new vectors q, k, and v for each input vector of the encoder.\nStep 2 is to calculate a correlation score (Score) $$ Score_{1.1}=\\mathbf{q}_1 \\cdot \\mathbf{k}_1=|q_1||k_1|\\cos\\theta\\\\ Score_{1.2}=\\mathbf{q}_1 \\cdot \\mathbf{k}_2=|q_1||k_2|\\cos\\theta\\\\ ... $$ Step 3 is to divide the correlation score (Score) by 8, which will make the gradient during the model training more stable.\n">
+<meta property='og:description' content="基础知识学习了这篇博客\nCV攻城狮入门VIT(vision transformer)之旅——近年超火的Transformer你再不了解就晚了！ - 掘金\n论文参考：Attention Is All You Need\n1706.03762\n然后读Transformer底层代码\n环境导入\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 import copy import math import torch from torch import nn import torch.nn.functional as F import numpy as np #from torch.utils.tensorboard import SummaryWriter import utils_transformer as utils import math, copy, time import matplotlib.pyplot as plt print(&#34;PyTorch Version: &#34;,torch.__version__) device = torch.device(&#34;cuda:0&#34; if torch.cuda.is_available() else &#34;cpu&#34;) print(&#39;Device:&#39;, device) num_gpu = torch.cuda.device_count() print(&#39;Number of GPUs Available:&#39;, num_gpu) # # Default directory &#34;runs&#34; # writer = SummaryWriter() HyperParameters设置\n">
 <meta property='og:url' content='http://localhost:1313/p/transformer/'>
 <meta property='og:site_name' content='Lee Sivan&#39;s Blog'>
 <meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:published_time' content='2025-10-15T13:52:23&#43;08:00'/><meta property='article:modified_time' content='2025-10-15T13:52:23&#43;08:00'/>
 <meta name="twitter:title" content="Transformer">
-<meta name="twitter:description" content="Transformer is a typical Seq2Seq model.\nAttention mechanism: Selectively focus on the important parts and ignore the unimportant ones.\nEmbedding: The process of mapping textual information into numerical information.\nQueries (query vectors), Keys (key vectors), Values (value vectors)\nStep 1 is to create three new vectors q, k, and v for each input vector of the encoder.\nStep 2 is to calculate a correlation score (Score) $$ Score_{1.1}=\\mathbf{q}_1 \\cdot \\mathbf{k}_1=|q_1||k_1|\\cos\\theta\\\\ Score_{1.2}=\\mathbf{q}_1 \\cdot \\mathbf{k}_2=|q_1||k_2|\\cos\\theta\\\\ ... $$ Step 3 is to divide the correlation score (Score) by 8, which will make the gradient during the model training more stable.\n">
+<meta name="twitter:description" content="基础知识学习了这篇博客\nCV攻城狮入门VIT(vision transformer)之旅——近年超火的Transformer你再不了解就晚了！ - 掘金\n论文参考：Attention Is All You Need\n1706.03762\n然后读Transformer底层代码\n环境导入\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 import copy import math import torch from torch import nn import torch.nn.functional as F import numpy as np #from torch.utils.tensorboard import SummaryWriter import utils_transformer as utils import math, copy, time import matplotlib.pyplot as plt print(&#34;PyTorch Version: &#34;,torch.__version__) device = torch.device(&#34;cuda:0&#34; if torch.cuda.is_available() else &#34;cpu&#34;) print(&#39;Device:&#39;, device) num_gpu = torch.cuda.device_count() print(&#39;Number of GPUs Available:&#39;, num_gpu) # # Default directory &#34;runs&#34; # writer = SummaryWriter() HyperParameters设置\n">
     </head>
     <body class="
     article-page
@@ -82,7 +82,10 @@
                         
                         
                             <?xml version="1.0" encoding="utf-8"?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-<svg width="800px" height="800px" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#000000"><rect x="8" y="12" width="48" height="40"/><polyline points="56 20 32 36 8 20"/></svg>
+<svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M4 7.00005L10.2 11.65C11.2667 12.45 12.7333 12.45 13.8 11.65L20 7" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="3" y="5" width="18" height="14" rx="2" stroke="#000000" stroke-width="2" stroke-linecap="round"/>
+</svg>
                         
                     </a>
                 </li>
@@ -265,7 +268,7 @@
 
 
                 <time class="article-time--reading">
-                    1 minute read
+                    3 minute read
                 </time>
             </div>
         
@@ -280,29 +283,225 @@
     <section class="article-content">
     
     
-    <p>Transformer is a typical Seq2Seq model.</p>
-<p>Attention mechanism: Selectively focus on the important parts and ignore the unimportant ones.</p>
-<p>Embedding: The process of mapping textual information into numerical information.</p>
-<p>Queries (query vectors), Keys (key vectors), Values (value vectors)</p>
-<p>Step 1 is to create three new vectors q, k, and v for each input vector of the encoder.</p>
-<p>Step 2 is to calculate a correlation score (Score)
-</p>
-$$
-Score_{1.1}=\mathbf{q}_1 \cdot \mathbf{k}_1=|q_1||k_1|\cos\theta\\
-Score_{1.2}=\mathbf{q}_1 \cdot \mathbf{k}_2=|q_1||k_2|\cos\theta\\
-...
-$$<p>
-Step 3 is to divide the correlation score (Score) by 8, which will make the gradient during the model training more stable.</p>
-<p>Step 4 involves obtaining the weight factors through Softmax.</p>
-<p>Step 5 is to multiply each value vector by the corresponding Softmax score.
-</p>
-$$
-\text{Attention}(Q, K, V) = \text{Softmax}\left( \frac{QK^{\mathrm{T}}}{\sqrt{d_k}} \right) V
-$$<p>
-Multi-heads self-attention mechanism</p>
-<p>Encoder-decoder, initially developed to solve the problem of text translation</p>
-<p>Cross-attention mechanism</p>
-
+    <p>基础知识学习了这篇博客</p>
+<p><a class="link" href="https://juejin.cn/post/7152002993204756487"  target="_blank" rel="noopener"
+    >CV攻城狮入门VIT(vision transformer)之旅——近年超火的Transformer你再不了解就晚了！ - 掘金</a></p>
+<p>论文参考：Attention Is All You Need</p>
+<p><a class="link" href="https://arxiv.org/pdf/1706.03762"  target="_blank" rel="noopener"
+    >1706.03762</a></p>
+<p>然后读Transformer底层代码</p>
+<p>环境导入</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">copy</span>
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">math</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">torch</span>
+</span></span><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">nn</span>
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#from torch.utils.tensorboard import SummaryWriter</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">utils_transformer</span> <span class="k">as</span> <span class="nn">utils</span>
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">math</span><span class="o">,</span> <span class="nn">copy</span><span class="o">,</span> <span class="nn">time</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+</span></span><span class="line"><span class="cl"><span class="nb">print</span><span class="p">(</span><span class="s2">&#34;PyTorch Version: &#34;</span><span class="p">,</span><span class="n">torch</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&#34;cuda:0&#34;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&#34;cpu&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Device:&#39;</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="n">num_gpu</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">device_count</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Number of GPUs Available:&#39;</span><span class="p">,</span> <span class="n">num_gpu</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># # Default directory &#34;runs&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># writer = SummaryWriter()</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>HyperParameters设置</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="n">batch_size</span> <span class="o">=</span> <span class="mi">2</span>
+</span></span><span class="line"><span class="cl"><span class="n">sequence_length</span> <span class="o">=</span> <span class="mi">6</span>
+</span></span><span class="line"><span class="cl"><span class="n">hidden_size</span> <span class="o">=</span> <span class="mi">16</span>
+</span></span><span class="line"><span class="cl"><span class="n">attention_heads</span> <span class="o">=</span> <span class="mi">8</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Embeddings 将输入 token 和输出 token 转换为维度为 d 的向量</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">Embeddings</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>  <span class="c1"># 定义一个名为Embeddings的类，继承自nn.Module</span>
+</span></span><span class="line"><span class="cl">    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_model_hidden_size</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">):</span>  <span class="c1"># 初始化函数，接收隐藏层大小和词汇表大小作为参数</span>
+</span></span><span class="line"><span class="cl">        <span class="nb">super</span><span class="p">(</span><span class="n">Embeddings</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>  <span class="c1"># 调用父类的初始化方法</span>
+</span></span><span class="line"><span class="cl">        <span class="c1"># vocab_size: 词汇表中的元素数量</span>
+</span></span><span class="line"><span class="cl">        <span class="c1"># d_model_hidden_size: 隐藏层的大小</span>
+</span></span><span class="line"><span class="cl">        <span class="bp">self</span><span class="o">.</span><span class="n">lut</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Embedding</span><span class="p">(</span><span class="n">vocab_size</span><span class="p">,</span> <span class="n">d_model_hidden_size</span><span class="p">)</span>  <span class="c1"># 创建一个嵌入层，将词汇表大小和隐藏层大小作为参数</span>
+</span></span><span class="line"><span class="cl">        <span class="bp">self</span><span class="o">.</span><span class="n">d_model</span> <span class="o">=</span> <span class="n">d_model_hidden_size</span>  <span class="c1"># 将隐藏层大小存储在实例变量d_model中</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>  <span class="c1"># 定义前向传播函数，接收输入x</span>
+</span></span><span class="line"><span class="cl">        <span class="c1"># 查找嵌入向量，将输入的单词索引转换为对应的嵌入向量</span>
+</span></span><span class="line"><span class="cl">        <span class="c1"># 输出形状为 (batch_size, sequence_length, d_model_hidden_size)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lut</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d_model</span><span class="p">)</span>  <span class="c1"># 返回嵌入向量，并乘以隐藏层大小的平方根，以进行缩放</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Attenion</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="c1"># 实现注意力机制（缩放点积注意力）</span>
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">attention</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="n">d_k</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># 获取query的最后一个维度的大小，通常是嵌入向量的维度</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># 计算注意力得分，通过query和key的转置相乘，然后除以d_k的平方根进行缩放</span>
+</span></span><span class="line"><span class="cl">    <span class="n">scores</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">key</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">d_k</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># 如果提供了掩码</span>
+</span></span><span class="line"><span class="cl">        <span class="c1"># 使用掩码填充得分为负无穷大，以避免在softmax中被考虑</span>
+</span></span><span class="line"><span class="cl">        <span class="n">scores</span> <span class="o">=</span> <span class="n">scores</span><span class="o">.</span><span class="n">masked_fill</span><span class="p">(</span><span class="n">mask</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1e9</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="c1"># 对得分应用softmax，沿着最后一个维度进行归一化</span>
+</span></span><span class="line"><span class="cl">    <span class="n">p_attn</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="n">dropout</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># 如果提供了dropout层</span>
+</span></span><span class="line"><span class="cl">        <span class="n">p_attn</span> <span class="o">=</span> <span class="n">dropout</span><span class="p">(</span><span class="n">p_attn</span><span class="p">)</span>  <span class="c1"># 对注意力分布应用dropout</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="c1"># 计算注意力结果，通过注意力分布p_attn和value相乘</span>
+</span></span><span class="line"><span class="cl">    <span class="n">attention_result</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">p_attn</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="c1"># 返回注意力结果和注意力分布</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">attention_result</span><span class="p">,</span> <span class="n">p_attn</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>MultiHeaded Attention</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">MultiHeadedAttention</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>  <span class="c1"># 定义一个名为MultiHeadedAttention的类，继承自nn.Module</span>
+</span></span><span class="line"><span class="cl">    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">d_model</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>  <span class="c1"># 初始化函数，接收头数h、模型维度d_model和dropout比率作为参数</span>
+</span></span><span class="line"><span class="cl">        <span class="s2">&#34;Take in model size and number of heads.&#34;</span>  <span class="c1"># 简短说明：接收模型大小和头的数量</span>
+</span></span><span class="line"><span class="cl">        <span class="nb">super</span><span class="p">(</span><span class="n">MultiHeadedAttention</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>  <span class="c1"># 调用父类的初始化方法</span>
+</span></span><span class="line"><span class="cl">        <span class="k">assert</span> <span class="n">d_model</span> <span class="o">%</span> <span class="n">h</span> <span class="o">==</span> <span class="mi">0</span>  <span class="c1"># 确保模型维度可以被头数整除</span>
+</span></span><span class="line"><span class="cl">        <span class="c1"># 我们假设d_v总是等于d_k</span>
+</span></span><span class="line"><span class="cl">        <span class="bp">self</span><span class="o">.</span><span class="n">d_k</span> <span class="o">=</span> <span class="n">d_model</span> <span class="o">//</span> <span class="n">h</span>  <span class="c1"># 计算每个头的维度</span>
+</span></span><span class="line"><span class="cl">        <span class="bp">self</span><span class="o">.</span><span class="n">h</span> <span class="o">=</span> <span class="n">h</span>  <span class="c1"># 存储头的数量</span>
+</span></span><span class="line"><span class="cl">        <span class="bp">self</span><span class="o">.</span><span class="n">linears</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">clones</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">d_model</span><span class="p">),</span> <span class="mi">4</span><span class="p">)</span>  <span class="c1"># 创建四个线性变换层</span>
+</span></span><span class="line"><span class="cl">        <span class="bp">self</span><span class="o">.</span><span class="n">attn</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># 初始化注意力权重</span>
+</span></span><span class="line"><span class="cl">        <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="n">dropout</span><span class="p">)</span>  <span class="c1"># 创建dropout层，设置丢弃率</span>
+</span></span><span class="line"><span class="cl">        
+</span></span><span class="line"><span class="cl">    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># 定义前向传播函数，接收query、key、value和可选的mask作为参数</span>
+</span></span><span class="line"><span class="cl">        
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># 如果提供了掩码</span>
+</span></span><span class="line"><span class="cl">            <span class="c1"># 对所有的头应用相同的掩码</span>
+</span></span><span class="line"><span class="cl">            <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">nbatches</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># 获取batch的大小</span>
+</span></span><span class="line"><span class="cl">        
+</span></span><span class="line"><span class="cl">        <span class="c1"># 1) 在批处理中执行所有线性变换，从d_model =&gt; h x d_k</span>
+</span></span><span class="line"><span class="cl">        <span class="c1"># query、key和value的原始形状是 [nbatches, seq_len, d_model]</span>
+</span></span><span class="line"><span class="cl">        <span class="n">query</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="p">[</span><span class="n">l</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">nbatches</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">h</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_k</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> 
+</span></span><span class="line"><span class="cl">                             <span class="k">for</span> <span class="n">l</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">linears</span><span class="p">,</span> <span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">))]</span>
+</span></span><span class="line"><span class="cl">        
+</span></span><span class="line"><span class="cl">        <span class="c1"># 2) 对所有投影向量应用注意力机制</span>
+</span></span><span class="line"><span class="cl">        <span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">attn</span> <span class="o">=</span> <span class="n">attention</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        
+</span></span><span class="line"><span class="cl">        <span class="c1"># 3) 使用view将结果“连接”起来，并应用最终的线性变换</span>
+</span></span><span class="line"><span class="cl">        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">nbatches</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">h</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_k</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">linears</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">](</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># 返回最后的线性变换结果</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div>
 </section>
 
 
