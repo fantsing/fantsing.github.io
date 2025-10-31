@@ -254,12 +254,14 @@
         <pubDate>Wed, 01 Oct 2025 13:40:43 +0800</pubDate>
         
         <guid>http://localhost:1313/p/alexnet%E5%AD%A6%E4%B9%A0/</guid>
-        <description>&lt;p&gt;2012年提出，在ImageNet图像分类比赛中取得优异成绩，它通过使用RLU激活函数，数据增强和dropout正则化技术，极大地提升了图像识别的精度和速度。AlexNet的成功标志着深度学习在计算机视觉领域的突破，推动了后续更多先进网络结构的研发。实际上也是DL的导火索。&lt;/p&gt;
+        <description>&lt;h1 id=&#34;alexnet-学习&#34;&gt;AlexNet 学习
+&lt;/h1&gt;&lt;h2 id=&#34;1-概论&#34;&gt;1. 概论
+&lt;/h2&gt;&lt;p&gt;2012年提出，在ImageNet图像分类比赛中取得优异成绩，它通过使用RLU激活函数，数据增强和dropout正则化技术，极大地提升了图像识别的精度和速度。AlexNet的成功标志着深度学习在计算机视觉领域的突破，推动了后续更多先进网络结构的研发。实际上也是DL的导火索。&lt;/p&gt;
 &lt;p&gt;论文出处：&lt;a class=&#34;link&#34; href=&#34;https://dl.acm.org/doi/10.1145/3065386&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
     &gt;ImageNet classification with deep convolutional neural networks | Communications of the ACM&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id=&#34;1-原理学习&#34;&gt;1. 原理学习
+&lt;h2 id=&#34;2-原理学习&#34;&gt;2. 原理学习
 &lt;/h2&gt;&lt;h3 id=&#34;1-卷积的计算与属性&#34;&gt;1. 卷积的计算与属性
-&lt;/h3&gt;&lt;p&gt;&lt;img src=&#34;E:%5cblog%5cmy-blog%5ccontent%5cpost%5cAlexNet%5c1.png&#34;
+&lt;/h3&gt;&lt;p&gt;&lt;img src=&#34;http://localhost:1313/images/1.png&#34;
 	
 	
 	
@@ -271,24 +273,24 @@
 &gt;&lt;/p&gt;
 &lt;h3 id=&#34;2-数据增强&#34;&gt;2. 数据增强
 &lt;/h3&gt;&lt;p&gt;为了解决过拟合的问题，进行数据增强，旋转、裁剪、对比度等等&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;E:%5cblog%5cmy-blog%5ccontent%5cpost%5cAlexNet%5cimage-20251031105822428.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/images/2.png&#34;
 	
 	
 	
 	loading=&#34;lazy&#34;
 	
-		alt=&#34;image-20251031105822428&#34;
+		alt=&#34;2&#34;
 	
 	
 &gt;&lt;/p&gt;
 &lt;h3 id=&#34;3-dropout&#34;&gt;3. Dropout
-&lt;/h3&gt;&lt;p&gt;&lt;img src=&#34;E:%5cblog%5cmy-blog%5ccontent%5cpost%5cAlexNet%5cimage-20251031110015636.png&#34;
+&lt;/h3&gt;&lt;p&gt;&lt;img src=&#34;http://localhost:1313/images/3.png&#34;
 	
 	
 	
 	loading=&#34;lazy&#34;
 	
-		alt=&#34;image-20251031110015636&#34;
+		alt=&#34;3&#34;
 	
 	
 &gt;&lt;/p&gt;
@@ -297,17 +299,17 @@
 &lt;li&gt;多GPU实现，是因为当时硬件条件太差，无奈之举，现在已经不需要这样了，但是有GCNN后续问世，也是一种新训练方式。图中虚线feature map的交互（复制）是为了让模型更统一。&lt;/li&gt;
 &lt;li&gt;局部相应归一化，后续被BN/LN取代，只是一个过渡产物。&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;&lt;img src=&#34;E:%5cblog%5cmy-blog%5ccontent%5cpost%5cAlexNet%5cimage-20251031110517075.png&#34;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/images/4.png&#34;
 	
 	
 	
 	loading=&#34;lazy&#34;
 	
-		alt=&#34;image-20251031110517075&#34;
+		alt=&#34;4&#34;
 	
 	
 &gt;&lt;/p&gt;
-&lt;h2 id=&#34;2-代码实现&#34;&gt;2. 代码实现
+&lt;h2 id=&#34;3-代码实现&#34;&gt;3. 代码实现
 &lt;/h2&gt;&lt;p&gt;这里是从github找的，链接如下：&lt;a class=&#34;link&#34; href=&#34;https://github.com/Arwin-Yu/Deep-Learning-Image-Classification-Models-Based-CNN-or-Attention&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
     &gt;GitHub - Arwin-Yu/Deep-Learning-Image-Classification-Models-Based-CNN-or-Attention: This project organizes classic images classification neural networks based on convolution or attention, and writes training and inference python scripts&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;主要是学习“alexnet.py”文件，其他的训练脚本等等具有通用的性质。&lt;/p&gt;

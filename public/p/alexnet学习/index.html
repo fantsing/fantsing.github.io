@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
     <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset='utf-8'>
-<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="2012年提出，在ImageNet图像分类比赛中取得优异成绩，它通过使用RLU激活函数，数据增强和dropout正则化技术，极大地提升了图像识别的精度和速度。AlexNet的成功标志着深度学习在计算机视觉领域的突破，推动了后续更多先进网络结构的研发。实际上也是DL的导火索。\n论文出处：ImageNet classification with deep convolutional neural networks | Communications of the ACM\n1. 原理学习 1. 卷积的计算与属性 2. 数据增强 为了解决过拟合的问题，进行数据增强，旋转、裁剪、对比度等等\n3. Dropout 4. Other question 多GPU实现，是因为当时硬件条件太差，无奈之举，现在已经不需要这样了，但是有GCNN后续问世，也是一种新训练方式。图中虚线feature map的交互（复制）是为了让模型更统一。 局部相应归一化，后续被BN/LN取代，只是一个过渡产物。 2. 代码实现 这里是从github找的，链接如下：GitHub - Arwin-Yu/Deep-Learning-Image-Classification-Models-Based-CNN-or-Attention: This project organizes classic images classification neural networks based on convolution or attention, and writes training and inference python scripts\n主要是学习“alexnet.py”文件，其他的训练脚本等等具有通用的性质。\n1. 导入库 1 2 3 import torch.nn as nn import torch from torchsummary import summary torch.nn是PyTorch中用于构建神经网络的核心模块，nn是其缩写。它提供了大量预定义的神经网络层（如卷积层nn.Conv2d、全连接层nn.Linear、激活函数nn.ReLU、池化层nn.MaxPool2d等）、损失函数（如nn.CrossEntropyLoss、nn.MSELoss）以及模型容器（如nn.Sequential）。 - 通过nn模块，开发者可以快速搭建各种神经网络结构，无需手动实现底层运算。\n">
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="AlexNet 学习 1. 概论 2012年提出，在ImageNet图像分类比赛中取得优异成绩，它通过使用RLU激活函数，数据增强和dropout正则化技术，极大地提升了图像识别的精度和速度。AlexNet的成功标志着深度学习在计算机视觉领域的突破，推动了后续更多先进网络结构的研发。实际上也是DL的导火索。\n论文出处：ImageNet classification with deep convolutional neural networks | Communications of the ACM\n2. 原理学习 1. 卷积的计算与属性 2. 数据增强 为了解决过拟合的问题，进行数据增强，旋转、裁剪、对比度等等\n3. Dropout 4. Other question 多GPU实现，是因为当时硬件条件太差，无奈之举，现在已经不需要这样了，但是有GCNN后续问世，也是一种新训练方式。图中虚线feature map的交互（复制）是为了让模型更统一。 局部相应归一化，后续被BN/LN取代，只是一个过渡产物。 3. 代码实现 这里是从github找的，链接如下：GitHub - Arwin-Yu/Deep-Learning-Image-Classification-Models-Based-CNN-or-Attention: This project organizes classic images classification neural networks based on convolution or attention, and writes training and inference python scripts\n主要是学习“alexnet.py”文件，其他的训练脚本等等具有通用的性质。\n1. 导入库 1 2 3 import torch.nn as nn import torch from torchsummary import summary torch.nn是PyTorch中用于构建神经网络的核心模块，nn是其缩写。它提供了大量预定义的神经网络层（如卷积层nn.Conv2d、全连接层nn.Linear、激活函数nn.ReLU、池化层nn.MaxPool2d等）、损失函数（如nn.CrossEntropyLoss、nn.MSELoss）以及模型容器（如nn.Sequential）。 - 通过nn模块，开发者可以快速搭建各种神经网络结构，无需手动实现底层运算。\n">
 <title>AlexNet学习</title>
 
 <link rel='canonical' href='http://localhost:1313/p/alexnet%E5%AD%A6%E4%B9%A0/'>
 
 <link rel="stylesheet" href="/scss/style.min.6a692fd055deae459f2a9767f57f3855ba80cafd5041317f24f7360f6ca47cdf.css"><meta property='og:title' content="AlexNet学习">
-<meta property='og:description' content="2012年提出，在ImageNet图像分类比赛中取得优异成绩，它通过使用RLU激活函数，数据增强和dropout正则化技术，极大地提升了图像识别的精度和速度。AlexNet的成功标志着深度学习在计算机视觉领域的突破，推动了后续更多先进网络结构的研发。实际上也是DL的导火索。\n论文出处：ImageNet classification with deep convolutional neural networks | Communications of the ACM\n1. 原理学习 1. 卷积的计算与属性 2. 数据增强 为了解决过拟合的问题，进行数据增强，旋转、裁剪、对比度等等\n3. Dropout 4. Other question 多GPU实现，是因为当时硬件条件太差，无奈之举，现在已经不需要这样了，但是有GCNN后续问世，也是一种新训练方式。图中虚线feature map的交互（复制）是为了让模型更统一。 局部相应归一化，后续被BN/LN取代，只是一个过渡产物。 2. 代码实现 这里是从github找的，链接如下：GitHub - Arwin-Yu/Deep-Learning-Image-Classification-Models-Based-CNN-or-Attention: This project organizes classic images classification neural networks based on convolution or attention, and writes training and inference python scripts\n主要是学习“alexnet.py”文件，其他的训练脚本等等具有通用的性质。\n1. 导入库 1 2 3 import torch.nn as nn import torch from torchsummary import summary torch.nn是PyTorch中用于构建神经网络的核心模块，nn是其缩写。它提供了大量预定义的神经网络层（如卷积层nn.Conv2d、全连接层nn.Linear、激活函数nn.ReLU、池化层nn.MaxPool2d等）、损失函数（如nn.CrossEntropyLoss、nn.MSELoss）以及模型容器（如nn.Sequential）。 - 通过nn模块，开发者可以快速搭建各种神经网络结构，无需手动实现底层运算。\n">
+<meta property='og:description' content="AlexNet 学习 1. 概论 2012年提出，在ImageNet图像分类比赛中取得优异成绩，它通过使用RLU激活函数，数据增强和dropout正则化技术，极大地提升了图像识别的精度和速度。AlexNet的成功标志着深度学习在计算机视觉领域的突破，推动了后续更多先进网络结构的研发。实际上也是DL的导火索。\n论文出处：ImageNet classification with deep convolutional neural networks | Communications of the ACM\n2. 原理学习 1. 卷积的计算与属性 2. 数据增强 为了解决过拟合的问题，进行数据增强，旋转、裁剪、对比度等等\n3. Dropout 4. Other question 多GPU实现，是因为当时硬件条件太差，无奈之举，现在已经不需要这样了，但是有GCNN后续问世，也是一种新训练方式。图中虚线feature map的交互（复制）是为了让模型更统一。 局部相应归一化，后续被BN/LN取代，只是一个过渡产物。 3. 代码实现 这里是从github找的，链接如下：GitHub - Arwin-Yu/Deep-Learning-Image-Classification-Models-Based-CNN-or-Attention: This project organizes classic images classification neural networks based on convolution or attention, and writes training and inference python scripts\n主要是学习“alexnet.py”文件，其他的训练脚本等等具有通用的性质。\n1. 导入库 1 2 3 import torch.nn as nn import torch from torchsummary import summary torch.nn是PyTorch中用于构建神经网络的核心模块，nn是其缩写。它提供了大量预定义的神经网络层（如卷积层nn.Conv2d、全连接层nn.Linear、激活函数nn.ReLU、池化层nn.MaxPool2d等）、损失函数（如nn.CrossEntropyLoss、nn.MSELoss）以及模型容器（如nn.Sequential）。 - 通过nn模块，开发者可以快速搭建各种神经网络结构，无需手动实现底层运算。\n">
 <meta property='og:url' content='http://localhost:1313/p/alexnet%E5%AD%A6%E4%B9%A0/'>
 <meta property='og:site_name' content='Lee Sivan&#39;s Blog'>
 <meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:published_time' content='2025-10-01T13:40:43&#43;08:00'/><meta property='article:modified_time' content='2025-10-01T13:40:43&#43;08:00'/>
 <meta name="twitter:title" content="AlexNet学习">
-<meta name="twitter:description" content="2012年提出，在ImageNet图像分类比赛中取得优异成绩，它通过使用RLU激活函数，数据增强和dropout正则化技术，极大地提升了图像识别的精度和速度。AlexNet的成功标志着深度学习在计算机视觉领域的突破，推动了后续更多先进网络结构的研发。实际上也是DL的导火索。\n论文出处：ImageNet classification with deep convolutional neural networks | Communications of the ACM\n1. 原理学习 1. 卷积的计算与属性 2. 数据增强 为了解决过拟合的问题，进行数据增强，旋转、裁剪、对比度等等\n3. Dropout 4. Other question 多GPU实现，是因为当时硬件条件太差，无奈之举，现在已经不需要这样了，但是有GCNN后续问世，也是一种新训练方式。图中虚线feature map的交互（复制）是为了让模型更统一。 局部相应归一化，后续被BN/LN取代，只是一个过渡产物。 2. 代码实现 这里是从github找的，链接如下：GitHub - Arwin-Yu/Deep-Learning-Image-Classification-Models-Based-CNN-or-Attention: This project organizes classic images classification neural networks based on convolution or attention, and writes training and inference python scripts\n主要是学习“alexnet.py”文件，其他的训练脚本等等具有通用的性质。\n1. 导入库 1 2 3 import torch.nn as nn import torch from torchsummary import summary torch.nn是PyTorch中用于构建神经网络的核心模块，nn是其缩写。它提供了大量预定义的神经网络层（如卷积层nn.Conv2d、全连接层nn.Linear、激活函数nn.ReLU、池化层nn.MaxPool2d等）、损失函数（如nn.CrossEntropyLoss、nn.MSELoss）以及模型容器（如nn.Sequential）。 - 通过nn模块，开发者可以快速搭建各种神经网络结构，无需手动实现底层运算。\n">
+<meta name="twitter:description" content="AlexNet 学习 1. 概论 2012年提出，在ImageNet图像分类比赛中取得优异成绩，它通过使用RLU激活函数，数据增强和dropout正则化技术，极大地提升了图像识别的精度和速度。AlexNet的成功标志着深度学习在计算机视觉领域的突破，推动了后续更多先进网络结构的研发。实际上也是DL的导火索。\n论文出处：ImageNet classification with deep convolutional neural networks | Communications of the ACM\n2. 原理学习 1. 卷积的计算与属性 2. 数据增强 为了解决过拟合的问题，进行数据增强，旋转、裁剪、对比度等等\n3. Dropout 4. Other question 多GPU实现，是因为当时硬件条件太差，无奈之举，现在已经不需要这样了，但是有GCNN后续问世，也是一种新训练方式。图中虚线feature map的交互（复制）是为了让模型更统一。 局部相应归一化，后续被BN/LN取代，只是一个过渡产物。 3. 代码实现 这里是从github找的，链接如下：GitHub - Arwin-Yu/Deep-Learning-Image-Classification-Models-Based-CNN-or-Attention: This project organizes classic images classification neural networks based on convolution or attention, and writes training and inference python scripts\n主要是学习“alexnet.py”文件，其他的训练脚本等等具有通用的性质。\n1. 导入库 1 2 3 import torch.nn as nn import torch from torchsummary import summary torch.nn是PyTorch中用于构建神经网络的核心模块，nn是其缩写。它提供了大量预定义的神经网络层（如卷积层nn.Conv2d、全连接层nn.Linear、激活函数nn.ReLU、池化层nn.MaxPool2d等）、损失函数（如nn.CrossEntropyLoss、nn.MSELoss）以及模型容器（如nn.Sequential）。 - 通过nn模块，开发者可以快速搭建各种神经网络结构，无需手动实现底层运算。\n">
     </head>
     <body class="
     article-page
@@ -242,7 +242,8 @@
         <div class="widget--toc">
             <nav id="TableOfContents">
   <ol>
-    <li><a href="#1-原理学习">1. 原理学习</a>
+    <li><a href="#1-概论">1. 概论</a></li>
+    <li><a href="#2-原理学习">2. 原理学习</a>
       <ol>
         <li><a href="#1-卷积的计算与属性">1. 卷积的计算与属性</a></li>
         <li><a href="#2-数据增强">2. 数据增强</a></li>
@@ -250,7 +251,7 @@
         <li><a href="#4-other-question">4. Other question</a></li>
       </ol>
     </li>
-    <li><a href="#2-代码实现">2. 代码实现</a>
+    <li><a href="#3-代码实现">3. 代码实现</a>
       <ol>
         <li><a href="#1-导入库">1. 导入库</a></li>
         <li><a href="#2-类定义与初始化">2. 类定义与初始化</a></li>
@@ -332,12 +333,14 @@
     <section class="article-content">
     
     
-    <p>2012年提出，在ImageNet图像分类比赛中取得优异成绩，它通过使用RLU激活函数，数据增强和dropout正则化技术，极大地提升了图像识别的精度和速度。AlexNet的成功标志着深度学习在计算机视觉领域的突破，推动了后续更多先进网络结构的研发。实际上也是DL的导火索。</p>
+    <h1 id="alexnet-学习">AlexNet 学习
+</h1><h2 id="1-概论">1. 概论
+</h2><p>2012年提出，在ImageNet图像分类比赛中取得优异成绩，它通过使用RLU激活函数，数据增强和dropout正则化技术，极大地提升了图像识别的精度和速度。AlexNet的成功标志着深度学习在计算机视觉领域的突破，推动了后续更多先进网络结构的研发。实际上也是DL的导火索。</p>
 <p>论文出处：<a class="link" href="https://dl.acm.org/doi/10.1145/3065386"  target="_blank" rel="noopener"
     >ImageNet classification with deep convolutional neural networks | Communications of the ACM</a></p>
-<h2 id="1-原理学习">1. 原理学习
+<h2 id="2-原理学习">2. 原理学习
 </h2><h3 id="1-卷积的计算与属性">1. 卷积的计算与属性
-</h3><p><img src="E:%5cblog%5cmy-blog%5ccontent%5cpost%5cAlexNet%5c1.png"
+</h3><p><img src="/images/1.png"
 	
 	
 	
@@ -349,24 +352,24 @@
 ></p>
 <h3 id="2-数据增强">2. 数据增强
 </h3><p>为了解决过拟合的问题，进行数据增强，旋转、裁剪、对比度等等</p>
-<p><img src="E:%5cblog%5cmy-blog%5ccontent%5cpost%5cAlexNet%5cimage-20251031105822428.png"
+<p><img src="/images/2.png"
 	
 	
 	
 	loading="lazy"
 	
-		alt="image-20251031105822428"
+		alt="2"
 	
 	
 ></p>
 <h3 id="3-dropout">3. Dropout
-</h3><p><img src="E:%5cblog%5cmy-blog%5ccontent%5cpost%5cAlexNet%5cimage-20251031110015636.png"
+</h3><p><img src="/images/3.png"
 	
 	
 	
 	loading="lazy"
 	
-		alt="image-20251031110015636"
+		alt="3"
 	
 	
 ></p>
@@ -375,17 +378,17 @@
 <li>多GPU实现，是因为当时硬件条件太差，无奈之举，现在已经不需要这样了，但是有GCNN后续问世，也是一种新训练方式。图中虚线feature map的交互（复制）是为了让模型更统一。</li>
 <li>局部相应归一化，后续被BN/LN取代，只是一个过渡产物。</li>
 </ul>
-<p><img src="E:%5cblog%5cmy-blog%5ccontent%5cpost%5cAlexNet%5cimage-20251031110517075.png"
+<p><img src="/images/4.png"
 	
 	
 	
 	loading="lazy"
 	
-		alt="image-20251031110517075"
+		alt="4"
 	
 	
 ></p>
-<h2 id="2-代码实现">2. 代码实现
+<h2 id="3-代码实现">3. 代码实现
 </h2><p>这里是从github找的，链接如下：<a class="link" href="https://github.com/Arwin-Yu/Deep-Learning-Image-Classification-Models-Based-CNN-or-Attention"  target="_blank" rel="noopener"
     >GitHub - Arwin-Yu/Deep-Learning-Image-Classification-Models-Based-CNN-or-Attention: This project organizes classic images classification neural networks based on convolution or attention, and writes training and inference python scripts</a></p>
 <p>主要是学习“alexnet.py”文件，其他的训练脚本等等具有通用的性质。</p>

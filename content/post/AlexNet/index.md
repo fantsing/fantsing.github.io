@@ -4,34 +4,38 @@ title = 'AlexNet学习'
 
 +++
 
+# AlexNet 学习
+
+## 1. 概论
+
 2012年提出，在ImageNet图像分类比赛中取得优异成绩，它通过使用RLU激活函数，数据增强和dropout正则化技术，极大地提升了图像识别的精度和速度。AlexNet的成功标志着深度学习在计算机视觉领域的突破，推动了后续更多先进网络结构的研发。实际上也是DL的导火索。
 
 论文出处：[ImageNet classification with deep convolutional neural networks | Communications of the ACM](https://dl.acm.org/doi/10.1145/3065386)
 
-## 1. 原理学习
+## 2. 原理学习
 
 ### 1. 卷积的计算与属性
 
-![1](E:\blog\my-blog\content\post\AlexNet\1.png)
+![1](/images/1.png)
 
 ### 2. 数据增强
 
 为了解决过拟合的问题，进行数据增强，旋转、裁剪、对比度等等
 
-![image-20251031105822428](E:\blog\my-blog\content\post\AlexNet\image-20251031105822428.png)
+![2](/images/2.png)
 
 ### 3. Dropout
 
-![image-20251031110015636](E:\blog\my-blog\content\post\AlexNet\image-20251031110015636.png)
+![3](/images/3.png)
 
 ### 4. Other question
 
 - 多GPU实现，是因为当时硬件条件太差，无奈之举，现在已经不需要这样了，但是有GCNN后续问世，也是一种新训练方式。图中虚线feature map的交互（复制）是为了让模型更统一。
 - 局部相应归一化，后续被BN/LN取代，只是一个过渡产物。
 
-![image-20251031110517075](E:\blog\my-blog\content\post\AlexNet\image-20251031110517075.png)
+![4](/images/4.png)
 
-## 2. 代码实现
+## 3. 代码实现
 
 这里是从github找的，链接如下：[GitHub - Arwin-Yu/Deep-Learning-Image-Classification-Models-Based-CNN-or-Attention: This project organizes classic images classification neural networks based on convolution or attention, and writes training and inference python scripts](https://github.com/Arwin-Yu/Deep-Learning-Image-Classification-Models-Based-CNN-or-Attention)
 
