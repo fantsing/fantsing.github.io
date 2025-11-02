@@ -10,7 +10,7 @@
 <meta property='og:description' content="AlexNet 学习 概论 2012年提出，在ImageNet图像分类比赛中取得优异成绩，它通过使用RLU激活函数，数据增强和dropout正则化技术，极大地提升了图像识别的精度和速度。AlexNet的成功标志着深度学习在计算机视觉领域的突破，推动了后续更多先进网络结构的研发。实际上也是DL的导火索。\n论文出处：ImageNet classification with deep convolutional neural networks | Communications of the ACM\n原理学习 卷积的计算与属性 数据增强 为了解决过拟合的问题，进行数据增强，旋转、裁剪、对比度等等\nDropout Other question 多GPU实现，是因为当时硬件条件太差，无奈之举，现在已经不需要这样了，但是有GCNN后续问世，也是一种新训练方式。图中虚线feature map的交互（复制）是为了让模型更统一。 局部相应归一化，后续被BN/LN取代，只是一个过渡产物。 代码实现 这里是从github找的，链接如下：GitHub - Arwin-Yu/Deep-Learning-Image-Classification-Models-Based-CNN-or-Attention: This project organizes classic images classification neural networks based on convolution or attention, and writes training and inference python scripts\n主要是学习“alexnet.py”文件，其他的训练脚本等等具有通用的性质。\n导入库 1 2 3 import torch.nn as nn import torch from torchsummary import summary torch.nn是PyTorch中用于构建神经网络的核心模块，nn是其缩写。它提供了大量预定义的神经网络层（如卷积层nn.Conv2d、全连接层nn.Linear、激活函数nn.ReLU、池化层nn.MaxPool2d等）、损失函数（如nn.CrossEntropyLoss、nn.MSELoss）以及模型容器（如nn.Sequential）。 - 通过nn模块，开发者可以快速搭建各种神经网络结构，无需手动实现底层运算。\n">
 <meta property='og:url' content='http://localhost:1313/p/alexnet%E5%AD%A6%E4%B9%A0/'>
 <meta property='og:site_name' content='Lee Sivan&#39;s Blog'>
-<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:published_time' content='2025-10-01T13:40:43&#43;08:00'/><meta property='article:modified_time' content='2025-10-01T13:40:43&#43;08:00'/>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:published_time' content='2025-10-30T13:40:43&#43;08:00'/><meta property='article:modified_time' content='2025-10-30T13:40:43&#43;08:00'/>
 <meta name="twitter:title" content="AlexNet学习">
 <meta name="twitter:description" content="AlexNet 学习 概论 2012年提出，在ImageNet图像分类比赛中取得优异成绩，它通过使用RLU激活函数，数据增强和dropout正则化技术，极大地提升了图像识别的精度和速度。AlexNet的成功标志着深度学习在计算机视觉领域的突破，推动了后续更多先进网络结构的研发。实际上也是DL的导火索。\n论文出处：ImageNet classification with deep convolutional neural networks | Communications of the ACM\n原理学习 卷积的计算与属性 数据增强 为了解决过拟合的问题，进行数据增强，旋转、裁剪、对比度等等\nDropout Other question 多GPU实现，是因为当时硬件条件太差，无奈之举，现在已经不需要这样了，但是有GCNN后续问世，也是一种新训练方式。图中虚线feature map的交互（复制）是为了让模型更统一。 局部相应归一化，后续被BN/LN取代，只是一个过渡产物。 代码实现 这里是从github找的，链接如下：GitHub - Arwin-Yu/Deep-Learning-Image-Classification-Models-Based-CNN-or-Attention: This project organizes classic images classification neural networks based on convolution or attention, and writes training and inference python scripts\n主要是学习“alexnet.py”文件，其他的训练脚本等等具有通用的性质。\n导入库 1 2 3 import torch.nn as nn import torch from torchsummary import summary torch.nn是PyTorch中用于构建神经网络的核心模块，nn是其缩写。它提供了大量预定义的神经网络层（如卷积层nn.Conv2d、全连接层nn.Linear、激活函数nn.ReLU、池化层nn.MaxPool2d等）、损失函数（如nn.CrossEntropyLoss、nn.MSELoss）以及模型容器（如nn.Sequential）。 - 通过nn模块，开发者可以快速搭建各种神经网络结构，无需手动实现底层运算。\n">
     </head>
@@ -303,7 +303,7 @@
   <path d="M3 11h16" />
   <path d="M18 16.496v1.504l1 1" />
 </svg>
-                <time class="article-time--published">Oct 01, 2025</time>
+                <time class="article-time--published">Oct 30, 2025</time>
             </div>
         
 
