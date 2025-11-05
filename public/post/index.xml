@@ -13,7 +13,7 @@
         <pubDate>Tue, 04 Nov 2025 13:40:43 +0800</pubDate>
         
         <guid>http://localhost:1313/p/fcn%E5%AD%A6%E4%B9%A0/</guid>
-        <description>&lt;h1 id=&#34;fcn学习&#34;&gt;FCN学习
+        <description>&lt;h1 id=&#34;fcn&#34;&gt;FCN
 &lt;/h1&gt;&lt;h2 id=&#34;语义分割&#34;&gt;语义分割
 &lt;/h2&gt;&lt;p&gt;需要用到边缘信息的时候，我们就要用语义分割；当我们只关注类别的时候，那就是目标检测。语义分割是一种像素级别的分类。&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;http://localhost:1313/images/25.png&#34;
@@ -37,7 +37,7 @@
 	
 &gt;&lt;/p&gt;
 &lt;p&gt;Fully Convolutional Networks for Semantic Segmentation (FCN)把全连接层替换为卷积层，因此被称为“全卷积”网络，这个改变使得网络可以接受任意尺寸的输入&lt;/p&gt;
-&lt;h2 id=&#34;fcn&#34;&gt;FCN
+&lt;h2 id=&#34;fcn-1&#34;&gt;FCN
 &lt;/h2&gt;&lt;p&gt;&lt;img src=&#34;http://localhost:1313/images/27.png&#34;
 	
 	
@@ -125,30 +125,18 @@
 &lt;li&gt;平均准确率（mean accuracy），对每个类别单独计算“该类别像素的准确率”，再对所有类别取平均。&lt;/li&gt;
 &lt;/ol&gt;
 &lt;ul&gt;
-&lt;li&gt;
-&lt;p&gt;$n_{cls}$ 是&lt;strong&gt;目标类别个数（包含背景）&lt;/strong&gt;；&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;先针对每个类别i，计算$\frac{n_{ii}}{t_i}$（类别i的像素被正确预测的比例），再将所有类别结果求平均。&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;特点：能缓解类别不平衡的影响，更公平地反映每个类别的预测精度。&lt;/p&gt;
+&lt;li&gt;$n_{cls}$ 是&lt;strong&gt;目标类别个数（包含背景）&lt;/strong&gt;；&lt;/li&gt;
+&lt;li&gt;先针对每个类别i，计算$\frac{n_{ii}}{t_i}$（类别i的像素被正确预测的比例），再将所有类别结果求平均。&lt;/li&gt;
+&lt;li&gt;特点：能缓解类别不平衡的影响，更公平地反映每个类别的预测精度。&lt;/li&gt;
+&lt;/ul&gt;
 &lt;ol start=&#34;3&#34;&gt;
 &lt;li&gt;平均交并比（mean IOU），对每个类别计算“交并比（IOU）”后取平均，IOU是语义分割的核心指标，反映“预测区域与真实区域的重叠程度”。&lt;/li&gt;
 &lt;/ol&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;分子$n_{ii}$是&lt;strong&gt;预测和真实都为类别i的像素数（交集）&lt;/strong&gt;；&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;分母$t_i + \sum_j n_{ji} - n_{ii}$是&lt;strong&gt;预测为类别i的像素数 + 真实为类别i的像素数 - 交集（并集）&lt;/strong&gt;；&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;先计算每个类别i的$\frac{交集}{并集}$，再对所有类别取平均。&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;特点：是语义分割任务中最具说服力的指标，能有效衡量“预测区域的准确性和完整性”。&lt;/p&gt;
-&lt;/li&gt;
+&lt;ul&gt;
+&lt;li&gt;分子$n_{ii}$是&lt;strong&gt;预测和真实都为类别i的像素数（交集）&lt;/strong&gt;；&lt;/li&gt;
+&lt;li&gt;分母$t_i + \sum_j n_{ji} - n_{ii}$是&lt;strong&gt;预测为类别i的像素数 + 真实为类别i的像素数 - 交集（并集）&lt;/strong&gt;；&lt;/li&gt;
+&lt;li&gt;先计算每个类别i的$\frac{交集}{并集}$，再对所有类别取平均。&lt;/li&gt;
+&lt;li&gt;特点：是语义分割任务中最具说服力的指标，能有效衡量“预测区域的准确性和完整性”。&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;&lt;img src=&#34;http://localhost:1313/images/33.png&#34;
 	
