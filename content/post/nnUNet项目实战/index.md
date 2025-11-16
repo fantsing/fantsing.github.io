@@ -1,10 +1,10 @@
 +++
 date = '2025-11-06T13:40:43+08:00'
-title = 'nnUNetv2项目实战'
+title = 'nnUNet项目实战'
 
 +++
 
-# nnUNetv2
+# nnUNet
 
 ## 配置环境
 
