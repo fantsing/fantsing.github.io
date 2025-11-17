@@ -1,6 +1,7 @@
 +++
 date = '2025-10-30T13:40:43+08:00'
 title = 'AlexNet学习'
+categories: ["入门学习"]
 
 +++
 
