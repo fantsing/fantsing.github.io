@@ -4,7 +4,29 @@ title = 'ViT项目'
 
 +++
 
-最近仔细思考了下，感觉不能走马观花地把项目复现了就行，于是对照着b站上的【前钰】大佬分享的视频，手撕ViT的底层代码，做了详细的标注并且跟着视频手推。这里可能会反复思考几天，因为基础比较薄弱。近期也是在手推nn-UNet的底层代码，双管齐下，勤于思考吧，加油！
+## 心得
+
+首先，跟着李沐的论文带读分享，仔细读了Transformer，Vision transformer 和 Swin Transformer 三篇具有代表性的论文，感触颇多。
+
+Transformer：
+
+论文：[1706.03762](https://arxiv.org/pdf/1706.03762)
+
+视频：[Transformer论文逐段精读【论文精读】_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1pu411o7BE?spm_id_from=333.788.videopod.sections&vd_source=1c8d92c874bbc8513666bfff2e44cbcc)
+
+Vision transformer：
+
+论文：[2010.11929](https://arxiv.org/pdf/2010.11929)
+
+视频：[ViT论文逐段精读【论文精读】_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV15P4y137jb/?spm_id_from=333.1391.0.0&vd_source=1c8d92c874bbc8513666bfff2e44cbcc)
+
+Swin transformer：
+
+论文：[2103.14030](https://arxiv.org/pdf/2103.14030)
+
+视频：[Swin Transformer论文精读【论文精读】_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV13L4y1475U?spm_id_from=333.788.videopod.sections&vd_source=1c8d92c874bbc8513666bfff2e44cbcc)
+
+最近也仔细思考了下，感觉不能走马观花地把代码复现了就行，于是对照着b站上的【前钰】大佬分享的视频，手撕ViT的底层代码，做了详细的标注并且跟着视频手推。这里可能会反复思考几天，因为基础比较薄弱。近期也是在手推nn-UNet的底层代码，双管齐下，勤于思考吧，加油！
 
 视频链接如下：[从零搭建Vit，手撕attention注意力机制_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1Xwc6eoEBa/)
 
