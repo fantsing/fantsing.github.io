@@ -201,5 +201,3 @@ class RGBTo01Normalization(ImageNormalization)...
 ![41](images/41.png)
 
 这部分就是归一化函数的类定义，具体情况具体分析
-
-![41](../../blog/my-blog/static/images/41.png)
