@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="问题1：spacing从（0.5，0.5，0.5）-&gt; (1，1，1)发生了什么变化？\n图像被降采样，分辨率降低 ，体素变大了一倍。\n公式为：新像素个数 × 新的间距 = 原来的间距 × 原来的像素个数\n问题2：当前是怎么做crop的？要修改crop应该怎么做\n用 create_nonzero_mask 非零的位置加入掩码，用 crop_to_nonzero 裁剪数据，只保留包含非零区域的 bounding box。目的是去掉大量的黑色背景。最后通过np.get_bbox函数获取分割图像的前景区域，并将所有非零值赋0，为0的值赋-1。\n修改crop的方法：有时候想给目标周围多留几个像素，就需要扩大边界，支持 margin 是一种修改，还有 target_shape 支持裁剪后固定的某个形状，可以 padding 可以截断。\n问题3：使用的哪个归一化函数?\n直接运行程序，print 打印显示使用的 &lsquo;ZScoreNormalization&rsquo; 归一化函数\ndefault_resampling.py 路径：nnunetv2/preprocessing/resampling/default_resampling.py\nget_do_separate_z：判断是否需要处理 z 轴，具体为 max(spacing) ÷ min(spacing) ，再和 anisotropy_threshold 比较，如果前者大，则单独处理 z 轴；如果后者大，则不单独处理。这里提到一个“各向异性”，就是xyz的差距是否过大。 1 2 3 4 5 6 def get_do_separate_z( spacing: Union[Tuple[float, ...], List[float], np.ndarray], anisotropy_threshold=ANISO_THRESHOLD): # 计算“最大像素间距 ÷ 最小像素间距”，如果大于阈值，就单独处理Z轴 do_separate_z = (np.max(spacing) / np.min(spacing)) &gt; anisotropy_threshold return do_separate_z get_lowres_axis：找到低分辨率的轴 1 2 3 4 5 def get_lowres_axis( new_spacing: Union[Tuple[float, ...], List[float], np.ndarray]): # 找到哪个轴是各向异性的（那个方向就是精度最低的） axis = np.where(max(new_spacing) / np.array(new_spacing) == 1)[0] # find which axis is anisotropic return axis compute_new_shape：比较实用的函数，根据新旧像素间距，计算数据缩放后的新尺寸。其中 old_shape 是数据原来的像素尺寸；old_spacing 是数据原来的像素间距；new_spacing 是想要的新像素间距（；new_shape 是计算后的数据新像素尺寸。 1 2 3 4 5 6 7 8 9 10 def compute_new_shape(old_shape: Union[Tuple[int, ...], List[int], np.ndarray], old_spacing: Union[Tuple[float, ...], List[float], np.ndarray], new_spacing: Union[Tuple[float, ...], List[float], np.ndarray]) -&gt; np.ndarray: # 检查1：旧 spacing 方向数，必须和旧 shape 方向数一样 assert len(old_spacing) == len(old_shape) # 检查2：新 shape 方向数，必须和旧 shape 方向数一样 assert len(old_shape) == len(new_spacing) # 公式：计算每个方向的新像素数，最后转成整数 new_shape = np.array([int(round(i / j * k)) for i, j, k in zip(old_spacing, new_spacing, old_shape)]) return new_shape 举个例子：\n">
+<title>nnUNet代码底层学习-预处理</title>
+
+<link rel='canonical' href='http://localhost:1313/p/nnunet%E4%BB%A3%E7%A0%81%E5%BA%95%E5%B1%82%E5%AD%A6%E4%B9%A0-%E9%A2%84%E5%A4%84%E7%90%86/'>
+
+<link rel="stylesheet" href="/scss/style.min.6a692fd055deae459f2a9767f57f3855ba80cafd5041317f24f7360f6ca47cdf.css"><meta property='og:title' content="nnUNet代码底层学习-预处理">
+<meta property='og:description' content="问题1：spacing从（0.5，0.5，0.5）-&gt; (1，1，1)发生了什么变化？\n图像被降采样，分辨率降低 ，体素变大了一倍。\n公式为：新像素个数 × 新的间距 = 原来的间距 × 原来的像素个数\n问题2：当前是怎么做crop的？要修改crop应该怎么做\n用 create_nonzero_mask 非零的位置加入掩码，用 crop_to_nonzero 裁剪数据，只保留包含非零区域的 bounding box。目的是去掉大量的黑色背景。最后通过np.get_bbox函数获取分割图像的前景区域，并将所有非零值赋0，为0的值赋-1。\n修改crop的方法：有时候想给目标周围多留几个像素，就需要扩大边界，支持 margin 是一种修改，还有 target_shape 支持裁剪后固定的某个形状，可以 padding 可以截断。\n问题3：使用的哪个归一化函数?\n直接运行程序，print 打印显示使用的 &lsquo;ZScoreNormalization&rsquo; 归一化函数\ndefault_resampling.py 路径：nnunetv2/preprocessing/resampling/default_resampling.py\nget_do_separate_z：判断是否需要处理 z 轴，具体为 max(spacing) ÷ min(spacing) ，再和 anisotropy_threshold 比较，如果前者大，则单独处理 z 轴；如果后者大，则不单独处理。这里提到一个“各向异性”，就是xyz的差距是否过大。 1 2 3 4 5 6 def get_do_separate_z( spacing: Union[Tuple[float, ...], List[float], np.ndarray], anisotropy_threshold=ANISO_THRESHOLD): # 计算“最大像素间距 ÷ 最小像素间距”，如果大于阈值，就单独处理Z轴 do_separate_z = (np.max(spacing) / np.min(spacing)) &gt; anisotropy_threshold return do_separate_z get_lowres_axis：找到低分辨率的轴 1 2 3 4 5 def get_lowres_axis( new_spacing: Union[Tuple[float, ...], List[float], np.ndarray]): # 找到哪个轴是各向异性的（那个方向就是精度最低的） axis = np.where(max(new_spacing) / np.array(new_spacing) == 1)[0] # find which axis is anisotropic return axis compute_new_shape：比较实用的函数，根据新旧像素间距，计算数据缩放后的新尺寸。其中 old_shape 是数据原来的像素尺寸；old_spacing 是数据原来的像素间距；new_spacing 是想要的新像素间距（；new_shape 是计算后的数据新像素尺寸。 1 2 3 4 5 6 7 8 9 10 def compute_new_shape(old_shape: Union[Tuple[int, ...], List[int], np.ndarray], old_spacing: Union[Tuple[float, ...], List[float], np.ndarray], new_spacing: Union[Tuple[float, ...], List[float], np.ndarray]) -&gt; np.ndarray: # 检查1：旧 spacing 方向数，必须和旧 shape 方向数一样 assert len(old_spacing) == len(old_shape) # 检查2：新 shape 方向数，必须和旧 shape 方向数一样 assert len(old_shape) == len(new_spacing) # 公式：计算每个方向的新像素数，最后转成整数 new_shape = np.array([int(round(i / j * k)) for i, j, k in zip(old_spacing, new_spacing, old_shape)]) return new_shape 举个例子：\n">
+<meta property='og:url' content='http://localhost:1313/p/nnunet%E4%BB%A3%E7%A0%81%E5%BA%95%E5%B1%82%E5%AD%A6%E4%B9%A0-%E9%A2%84%E5%A4%84%E7%90%86/'>
+<meta property='og:site_name' content='Lee Sivan&#39;s Blog'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:published_time' content='2025-11-22T13:40:43&#43;08:00'/><meta property='article:modified_time' content='2025-11-22T13:40:43&#43;08:00'/>
+<meta name="twitter:title" content="nnUNet代码底层学习-预处理">
+<meta name="twitter:description" content="问题1：spacing从（0.5，0.5，0.5）-&gt; (1，1，1)发生了什么变化？\n图像被降采样，分辨率降低 ，体素变大了一倍。\n公式为：新像素个数 × 新的间距 = 原来的间距 × 原来的像素个数\n问题2：当前是怎么做crop的？要修改crop应该怎么做\n用 create_nonzero_mask 非零的位置加入掩码，用 crop_to_nonzero 裁剪数据，只保留包含非零区域的 bounding box。目的是去掉大量的黑色背景。最后通过np.get_bbox函数获取分割图像的前景区域，并将所有非零值赋0，为0的值赋-1。\n修改crop的方法：有时候想给目标周围多留几个像素，就需要扩大边界，支持 margin 是一种修改，还有 target_shape 支持裁剪后固定的某个形状，可以 padding 可以截断。\n问题3：使用的哪个归一化函数?\n直接运行程序，print 打印显示使用的 &lsquo;ZScoreNormalization&rsquo; 归一化函数\ndefault_resampling.py 路径：nnunetv2/preprocessing/resampling/default_resampling.py\nget_do_separate_z：判断是否需要处理 z 轴，具体为 max(spacing) ÷ min(spacing) ，再和 anisotropy_threshold 比较，如果前者大，则单独处理 z 轴；如果后者大，则不单独处理。这里提到一个“各向异性”，就是xyz的差距是否过大。 1 2 3 4 5 6 def get_do_separate_z( spacing: Union[Tuple[float, ...], List[float], np.ndarray], anisotropy_threshold=ANISO_THRESHOLD): # 计算“最大像素间距 ÷ 最小像素间距”，如果大于阈值，就单独处理Z轴 do_separate_z = (np.max(spacing) / np.min(spacing)) &gt; anisotropy_threshold return do_separate_z get_lowres_axis：找到低分辨率的轴 1 2 3 4 5 def get_lowres_axis( new_spacing: Union[Tuple[float, ...], List[float], np.ndarray]): # 找到哪个轴是各向异性的（那个方向就是精度最低的） axis = np.where(max(new_spacing) / np.array(new_spacing) == 1)[0] # find which axis is anisotropic return axis compute_new_shape：比较实用的函数，根据新旧像素间距，计算数据缩放后的新尺寸。其中 old_shape 是数据原来的像素尺寸；old_spacing 是数据原来的像素间距；new_spacing 是想要的新像素间距（；new_shape 是计算后的数据新像素尺寸。 1 2 3 4 5 6 7 8 9 10 def compute_new_shape(old_shape: Union[Tuple[int, ...], List[int], np.ndarray], old_spacing: Union[Tuple[float, ...], List[float], np.ndarray], new_spacing: Union[Tuple[float, ...], List[float], np.ndarray]) -&gt; np.ndarray: # 检查1：旧 spacing 方向数，必须和旧 shape 方向数一样 assert len(old_spacing) == len(old_shape) # 检查2：新 shape 方向数，必须和旧 shape 方向数一样 assert len(old_shape) == len(new_spacing) # 公式：计算每个方向的新像素数，最后转成整数 new_shape = np.array([int(round(i / j * k)) for i, j, k in zip(old_spacing, new_spacing, old_shape)]) return new_shape 举个例子：\n">
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="Toggle Menu">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/avatar_hu_c14aa3b58f97651b.png" width="300"
+                            height="311" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">Lee Sivan&#39;s Blog</a></h1>
+            <h2 class="site-description"></h2>
+        </div>
+    </header><ol class="menu-social">
+            
+                <li>
+                    <a 
+                        href='15542277303@163.com'
+                        target="_blank"
+                        title="Email"
+                        rel="me"
+                    >
+                        
+                        
+                            <?xml version="1.0" encoding="utf-8"?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+<svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M4 7.00005L10.2 11.65C11.2667 12.45 12.7333 12.45 13.8 11.65L20 7" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="3" y="5" width="18" height="14" rx="2" stroke="#000000" stroke-width="2" stroke-linecap="round"/>
+</svg>
+                        
+                    </a>
+                </li>
+            
+                <li>
+                    <a 
+                        href='https://github.com/fantsing'
+                        target="_blank"
+                        title="GitHub"
+                        rel="me"
+                    >
+                        
+                        
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5" />
+</svg>
+
+
+
+                        
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>Home</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/about/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>About</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>Archives</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>Search</span>
+            </a>
+        </li>
+        
+        <li class="menu-bottom-section">
+            <ol class="menu">
+
+                
+                    <li id="dark-mode-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <span>Dark Mode</span>
+                    </li>
+                
+            </ol>
+        </li>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">Table of contents</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li><a href="#default_resamplingpy">default_resampling.py</a></li>
+    <li><a href="#croppingpy">cropping.py</a></li>
+    <li><a href="#default_normalization_schemespy">default_normalization_schemes.py</a></li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+            <main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/p/nnunet%E4%BB%A3%E7%A0%81%E5%BA%95%E5%B1%82%E5%AD%A6%E4%B9%A0-%E9%A2%84%E5%A4%84%E7%90%86/">nnUNet代码底层学习-预处理</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">Nov 22, 2025</time>
+            </div>
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+                <time class="article-time--reading">
+                    3 minute read
+                </time>
+            </div>
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <p>问题1：spacing从（0.5，0.5，0.5）-&gt; (1，1，1)发生了什么变化？</p>
+<p>图像被降采样，分辨率降低 ，体素变大了一倍。</p>
+<p>公式为：新像素个数 × 新的间距  =  原来的间距 × 原来的像素个数</p>
+<p>问题2：当前是怎么做crop的？要修改crop应该怎么做</p>
+<p>用 create_nonzero_mask 非零的位置加入掩码，用 crop_to_nonzero 裁剪数据，只保留包含非零区域的 bounding box。目的是去掉大量的黑色背景。最后通过np.get_bbox函数获取分割图像的前景区域，并将所有非零值赋0，为0的值赋-1。</p>
+<p>修改crop的方法：有时候想给目标周围多留几个像素，就需要扩大边界，支持 margin 是一种修改，还有 target_shape 支持裁剪后固定的某个形状，可以 padding 可以截断。</p>
+<p>问题3：使用的哪个归一化函数?</p>
+<p>直接运行程序，print 打印显示使用的 &lsquo;ZScoreNormalization&rsquo; 归一化函数</p>
+<h2 id="default_resamplingpy">default_resampling.py
+</h2><p>路径：nnunetv2/preprocessing/resampling/default_resampling.py</p>
+<ul>
+<li>get_do_separate_z：判断是否需要处理 z 轴，具体为 max(spacing) ÷ min(spacing) ，再和 anisotropy_threshold 比较，如果前者大，则单独处理 z 轴；如果后者大，则不单独处理。这里提到一个“各向异性”，就是xyz的差距是否过大。</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">get_do_separate_z</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">spacing</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+</span></span><span class="line"><span class="cl">        <span class="n">anisotropy_threshold</span><span class="o">=</span><span class="n">ANISO_THRESHOLD</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># 计算“最大像素间距 ÷ 最小像素间距”，如果大于阈值，就单独处理Z轴</span>
+</span></span><span class="line"><span class="cl">    <span class="n">do_separate_z</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">spacing</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">spacing</span><span class="p">))</span> <span class="o">&gt;</span> <span class="n">anisotropy_threshold</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">do_separate_z</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>get_lowres_axis：找到低分辨率的轴</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">get_lowres_axis</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">new_spacing</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]):</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># 找到哪个轴是各向异性的（那个方向就是精度最低的）</span>
+</span></span><span class="line"><span class="cl">    <span class="n">axis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">new_spacing</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">new_spacing</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># find which axis is anisotropic</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">axis</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>compute_new_shape：比较实用的函数，根据新旧像素间距，计算数据缩放后的新尺寸。其中 old_shape 是数据原来的像素尺寸；old_spacing 是数据原来的像素间距；new_spacing 是想要的新像素间距（；new_shape 是计算后的数据新像素尺寸。</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">compute_new_shape</span><span class="p">(</span><span class="n">old_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+</span></span><span class="line"><span class="cl">                      <span class="n">old_spacing</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+</span></span><span class="line"><span class="cl">                      <span class="n">new_spacing</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># 检查1：旧 spacing 方向数，必须和旧 shape 方向数一样</span>
+</span></span><span class="line"><span class="cl">    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">old_spacing</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">old_shape</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># 检查2：新 shape 方向数，必须和旧 shape 方向数一样</span>
+</span></span><span class="line"><span class="cl">    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">old_shape</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_spacing</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># 公式：计算每个方向的新像素数，最后转成整数</span>
+</span></span><span class="line"><span class="cl">    <span class="n">new_shape</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">i</span> <span class="o">/</span> <span class="n">j</span> <span class="o">*</span> <span class="n">k</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">old_spacing</span><span class="p">,</span> <span class="n">new_spacing</span><span class="p">,</span> <span class="n">old_shape</span><span class="p">)])</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">new_shape</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>举个例子：</p>
+<p>原来的尺寸 <code>old_shape = (128, 128, 64)</code>（X=128像素，Y=128像素，Z=64像素）；
+原来的间距 <code>old_spacing = (2, 2, 4)</code>（X/Y轴每像素2毫米，Z轴每像素4毫米）；
+想要的新间距 <code>new_spacing = (1, 1, 2)</code>（X/Y轴每像素1毫米，Z轴每像素2毫米）。</p>
+<p>公式为：实际物理大小 = 像素个数 × 像素间距；缩放后，实际物理大小不能变，所以：新像素个数 × 新的间距  =  原来的间距 × 原来的像素个数 。然后利用这个公式逐个方向计算（结果取整数），返回 <code>new_shape</code> 的值。</p>
+<ul>
+<li>determine_do_sep_z_and_axis：决定要不要单独处理低精度轴？以及具体处理哪个轴？</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">determine_do_sep_z_and_axis</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">force_separate_z</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="c1"># 手动强制执行“是否单独处理z轴”</span>
+</span></span><span class="line"><span class="cl">        <span class="n">current_spacing</span><span class="p">,</span>    <span class="c1">#数据当前的像素间距</span>
+</span></span><span class="line"><span class="cl">        <span class="n">new_spacing</span><span class="p">,</span>        <span class="c1">#数据想要改成的新像素间距</span>
+</span></span><span class="line"><span class="cl">        <span class="n">separate_z_anisotropy_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">ANISO_THRESHOLD</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="kc">None</span><span class="p">]]:</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># 判断是否强制</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="n">force_separate_z</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">do_separate_z</span> <span class="o">=</span> <span class="n">force_separate_z</span>    <span class="c1"># 直接用指定的</span>
+</span></span><span class="line"><span class="cl">        <span class="c1"># 如果指定要处理</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="n">force_separate_z</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="c1"># 找现在数据的低精度轴</span>
+</span></span><span class="line"><span class="cl">            <span class="n">axis</span> <span class="o">=</span> <span class="n">get_lowres_axis</span><span class="p">(</span><span class="n">current_spacing</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">else</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="n">axis</span> <span class="o">=</span> <span class="kc">None</span>
+</span></span><span class="line"><span class="cl">    <span class="k">else</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="c1"># 情况1：current_spacing 是各向异性，则找现在的低精度轴</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="n">get_do_separate_z</span><span class="p">(</span><span class="n">current_spacing</span><span class="p">,</span> <span class="n">separate_z_anisotropy_threshold</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">            <span class="n">do_separate_z</span> <span class="o">=</span> <span class="kc">True</span>
+</span></span><span class="line"><span class="cl">            <span class="n">axis</span> <span class="o">=</span> <span class="n">get_lowres_axis</span><span class="p">(</span><span class="n">current_spacing</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="c1"># 情况2：current_spacing 没问题，但 new_spacing 是各向异性，则找新间距的低精度轴</span>
+</span></span><span class="line"><span class="cl">        <span class="k">elif</span> <span class="n">get_do_separate_z</span><span class="p">(</span><span class="n">new_spacing</span><span class="p">,</span> <span class="n">separate_z_anisotropy_threshold</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">            <span class="n">do_separate_z</span> <span class="o">=</span> <span class="kc">True</span>
+</span></span><span class="line"><span class="cl">            <span class="n">axis</span> <span class="o">=</span> <span class="n">get_lowres_axis</span><span class="p">(</span><span class="n">new_spacing</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="c1"># 情况3：现在和新间距都没问题，则不处理</span>
+</span></span><span class="line"><span class="cl">        <span class="k">else</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="n">do_separate_z</span> <span class="o">=</span> <span class="kc">False</span>
+</span></span><span class="line"><span class="cl">            <span class="n">axis</span> <span class="o">=</span> <span class="kc">None</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>    <span class="c1"># 如果找到了要处理的轴</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>  <span class="c1"># 3个轴都是低精度</span>
+</span></span><span class="line"><span class="cl">            <span class="n">do_separate_z</span> <span class="o">=</span> <span class="kc">False</span>   <span class="c1"># 不处理</span>
+</span></span><span class="line"><span class="cl">            <span class="n">axis</span> <span class="o">=</span> <span class="kc">None</span>
+</span></span><span class="line"><span class="cl">        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>    <span class="c1"># 2个轴是低精度</span>
+</span></span><span class="line"><span class="cl">            <span class="n">do_separate_z</span> <span class="o">=</span> <span class="kc">False</span>   <span class="c1"># 不处理</span>
+</span></span><span class="line"><span class="cl">            <span class="n">axis</span> <span class="o">=</span> <span class="kc">None</span>
+</span></span><span class="line"><span class="cl">        <span class="k">else</span><span class="p">:</span>               <span class="c1"># 只有1个轴是低精度</span>
+</span></span><span class="line"><span class="cl">            <span class="n">axis</span> <span class="o">=</span> <span class="n">axis</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># 取这个轴的编号</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">do_separate_z</span><span class="p">,</span> <span class="n">axis</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>resample_data_or_seg_to_spacing：把数据（或分割标签）按照新旧像素间距，精准缩放成新的尺寸，还会根据之前判断的 “是否单独处理低精度轴” 来选择最优的缩放方式，保证缩放后数据不失真、物理大小不变。</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">resample_data_or_seg_to_spacing</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>   <span class="c1">#要缩放的原始数据</span>
+</span></span><span class="line"><span class="cl">                                    <span class="n">current_spacing</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="c1">#数据当前的像素间距</span>
+</span></span><span class="line"><span class="cl">                                    <span class="n">new_spacing</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="c1">#想要的新像素间距</span>
+</span></span><span class="line"><span class="cl">                                    <span class="n">is_seg</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>   <span class="c1">#是不是分割标签的开关</span>
+</span></span><span class="line"><span class="cl">                                    <span class="n">order</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="c1">#普通数据的缩放算法等级（默认3，代表用三次插值，缩放后细节保留得好，适合影像数据）</span>
+</span></span><span class="line"><span class="cl">                                    <span class="n">order_z</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1">#单独处理 Z 轴时的缩放算法等级（默认0，代表最近邻插值，适合低精度轴，避免失真）</span>
+</span></span><span class="line"><span class="cl">                                    <span class="n">force_separate_z</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>    <span class="c1">#强制处理z轴</span>
+</span></span><span class="line"><span class="cl">                                    <span class="n">separate_z_anisotropy_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">ANISO_THRESHOLD</span><span class="p">):</span> <span class="c1">#判断各向异性的阈值</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># 是否单独处理？处理哪个轴？</span>
+</span></span><span class="line"><span class="cl">    <span class="n">do_separate_z</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="n">determine_do_sep_z_and_axis</span><span class="p">(</span><span class="n">force_separate_z</span><span class="p">,</span> <span class="n">current_spacing</span><span class="p">,</span> <span class="n">new_spacing</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                                                      <span class="n">separate_z_anisotropy_threshold</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># 检查数据格式是否满足4维</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="k">assert</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&#34;data must be c x y z&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># 计算数据的新尺寸</span>
+</span></span><span class="line"><span class="cl">    <span class="n">shape</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>    <span class="c1"># 先拿到原始数据的尺寸</span>
+</span></span><span class="line"><span class="cl">    <span class="n">new_shape</span> <span class="o">=</span> <span class="n">compute_new_shape</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">current_spacing</span><span class="p">,</span> <span class="n">new_spacing</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># 执行缩放</span>
+</span></span><span class="line"><span class="cl">    <span class="n">data_reshaped</span> <span class="o">=</span> <span class="n">resample_data_or_seg</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">new_shape</span><span class="p">,</span> <span class="n">is_seg</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">do_separate_z</span><span class="p">,</span> <span class="n">order_z</span><span class="o">=</span><span class="n">order_z</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">data_reshaped</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>
+<p>resample_data_or_seg：按新尺寸，用合适的算法，真正把数据（或分割标签）缩放到位，支持单独处理低精度轴，保证缩放后数据不失真。</p>
+<p>参数具体如下：</p>
+<p><code>data</code>：要缩放的原始数据；</p>
+<p><code>new_shape</code>：要缩放成的新尺寸（比如 <code>256×256×128</code>）；</p>
+<p><code>is_seg</code>：是不是分割标签（<code>True</code>=是标签，<code>False</code>=普通影像）；</p>
+<p><code>axis</code>：要单独处理的低精度轴（比如 <code>2</code>=Z轴，<code>None</code>=不单独处理）；</p>
+<p><code>order</code>：普通缩放的算法等级（默认3，三次插值，保细节）；</p>
+<p><code>do_separate_z</code>：要不要单独处理低精度轴（<code>True</code>=要，<code>False</code>=不要）；</p>
+<p><code>order_z</code>：单独处理轴时的算法（默认0，最近邻插值，保精度）；</p>
+<p><code>dtype_out</code>：输出数据的格式（默认和原始数据一样）。</p>
+</li>
+</ul>
+<h2 id="croppingpy">cropping.py
+</h2><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">create_nonzero_mask</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="s2">&#34;&#34;&#34;
+</span></span></span><span class="line"><span class="cl"><span class="s2">    :param data:形状为 (C, X, Y, Z) 或 (C, X, Y) 的多通道医学图像 C = 通道数
+</span></span></span><span class="line"><span class="cl"><span class="s2">    :return: the mask is True where the data is nonzero
+</span></span></span><span class="line"><span class="cl"><span class="s2">    &#34;&#34;&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">assert</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> 
+</span></span><span class="line"><span class="cl">    <span class="c1"># 用第 0 个通道初始化掩码：非零的位置标记为 True</span>
+</span></span><span class="line"><span class="cl">    <span class="n">nonzero_mask</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># 遍历剩下的通道，将它们非零的位置加入掩码</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+</span></span><span class="line"><span class="cl">        <span class="n">nonzero_mask</span> <span class="o">|=</span> <span class="n">data</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span>
+</span></span><span class="line"><span class="cl">        <span class="c1"># |= 的意思是：mask = mask OR (data[c] != 0)</span>
+</span></span><span class="line"><span class="cl">    <span class="s1">&#39;&#39;&#39;
+</span></span></span><span class="line"><span class="cl"><span class="s1">    返回值:
+</span></span></span><span class="line"><span class="cl"><span class="s1">        一个布尔值数组，shape 为 (X, Y, Z)        
+</span></span></span><span class="line"><span class="cl"><span class="s1">        True 代表该位置至少有一个通道不是0（有内容）
+</span></span></span><span class="line"><span class="cl"><span class="s1">        False 代表所有通道都是0（背景）
+</span></span></span><span class="line"><span class="cl"><span class="s1">    &#39;&#39;&#39;</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># 填洞 binary_fill_holes，应该是为了保证实心</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">binary_fill_holes</span><span class="p">(</span><span class="n">nonzero_mask</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="default_normalization_schemespy">default_normalization_schemes.py
+</h2><p>路径：nnunetv2/preprocessing/normalization/default_normalization_schemes.py</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">ImageNormalization</span><span class="p">(</span><span class="n">ABC</span><span class="p">)</span><span class="o">...</span>
+</span></span><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">ZScoreNormalization</span><span class="p">(</span><span class="n">ImageNormalization</span><span class="p">)</span><span class="o">...</span>
+</span></span><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">CTNormalization</span><span class="p">(</span><span class="n">ImageNormalization</span><span class="p">)</span><span class="o">...</span>
+</span></span><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">NoNormalization</span><span class="p">(</span><span class="n">ImageNormalization</span><span class="p">)</span><span class="o">...</span>
+</span></span><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">RescaleTo01Normalization</span><span class="p">(</span><span class="n">ImageNormalization</span><span class="p">)</span><span class="o">...</span>
+</span></span><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">RGBTo01Normalization</span><span class="p">(</span><span class="n">ImageNormalization</span><span class="p">)</span><span class="o">...</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="/images/41.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="41"
+	
+	
+></p>
+<p>这部分就是归一化函数的类定义，具体情况具体分析</p>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+
+    
+    <section class="article-copyright">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <path d="M14.5 9a3.5 4 0 1 0 0 6" />
+</svg>
+
+
+
+        <span>Licensed under CC BY-NC-SA 4.0</span>
+    </section>
+    </footer>
+
+
+    
+        <link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI&#43;WdtXRGWt2kTvGFasHpSy3SV"crossorigin="anonymous"
+            ><script 
+                src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG&#43;vnGctmUb0ZY0l8"crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"integrity="sha384-&#43;VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4&#43;/RRE05"crossorigin="anonymous"
+                defer
+                >
+            </script><script>
+    window.addEventListener("DOMContentLoaded", () => {
+	const mainArticleElement = document.querySelector(".main-article");
+        renderMathInElement(mainArticleElement, {
+            delimiters: [
+                { left: "$$", right: "$$", display: true },
+                { left: "$", right: "$", display: false },
+                { left: "\\(", right: "\\)", display: false },
+                { left: "\\[", right: "\\]", display: true }
+            ],
+            ignoredClasses: ["gist"]
+        });})
+</script>
+
+    
+</article>
+
+    
+
+    
+
+     
+    
+        
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2020 - 
+        
+        2025 Lee Sivan
+    </section>
+    
+    <section class="powerby">
+        Built with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> <br />
+        Theme <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.31.0">Stack</a></b> designed by <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a>
+    </section>
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/ts/main.3d43a4c340fa2445bd8771f06cfa9701c142ab408309ca21aa0c14c87ea44dc1.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+    </body>
+</html>
