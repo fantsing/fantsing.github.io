@@ -1,6 +1,6 @@
 +++
 date = '2025-11-06T13:40:43+08:00'
-title = 'nnUNet项目实战'
+title = 'nnUNet复现'
 
 +++
 
