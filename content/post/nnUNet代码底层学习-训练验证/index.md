@@ -12,6 +12,8 @@ title = 'nnUNet代码底层学习-训练验证'
 
 ![44](images/44.png)
 
+路由进`run_training()` 函数，找到处理折数参数的代码。
+
 ```python
 if fold != 'all':
     try:
@@ -27,7 +29,7 @@ if fold != 'all':
 
 答：交叉验证中的折数，本质是将完整的数据集切分成的**互不重叠、大小相近的子集数量 / 单个子集的标识**：一方面，总折数（K） 是全局规则，决定把数据集分成 K 份，交叉验证的核心逻辑就是依次用其中 1 份做验证集、剩余 K-1 份做训练集，跑完 K 轮完成一次完整验证；另一方面，代码中单独定义的 `fold` 是单次执行的选择器，它既可以是 `all`（代表跑满 K 轮验证），也可以是具体数字，代表只针对某一个子集（某一折）执行训练 + 验证。
 
-`continue_training and validation_only`，继续训练还是仅验证，路由进函数 `maybe_load_checkpoint` ，这里要区分是不是使用了 nnUNet 的网络框架，如果是自己提供预训练权重，则满足 `pretrained_weights_file is not None`。
+`continue_training and only_run_validation`，继续训练还是仅验证，路由进函数 `maybe_load_checkpoint` ，这里要区分是不是使用了 nnUNet 的网络框架，如果是自己提供预训练权重，则满足 `pretrained_weights_file is not None`。
 
 ```python
 if not only_run_validation:
@@ -35,6 +37,8 @@ if not only_run_validation:
 ```
 
 路由进函数`run_training` 位于 `nnUNetTrainer.py` 文件
+
+## nnUNetTrainer.py
 
 ```python
 self.on_train_start()  #初始化超参数、网络结构、损失函数、加载数据
@@ -193,8 +197,6 @@ if self.grad_scaler is not None:
 step：既然梯度在第一步被放大了，scaler.step 会在内部自动把梯度除回去（unscale），然后应用到权重上。
 
 update：根据这一轮是否发生了梯度溢出（Infinity/NaN），动态调整下一轮的放大倍数。如果这轮没事，下轮尝试放大更多倍；如果溢出了，下轮就缩小倍数。
-
-
 
 路由进 `validation_step`函数
 
