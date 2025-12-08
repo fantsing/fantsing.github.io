@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="run_training.py 找到 run_training_entry() 路由进入函数，print 一下配置，如下图所示。\n路由进run_training() 函数，找到处理折数参数的代码。\n1 2 3 4 5 6 if fold != &#39;all&#39;: try: fold = int(fold) except ValueError as e: print(f&#39;Unable to convert given value for fold to int: {fold}. fold must bei either &#34;all&#34; or an integer!&#39;) raise e all 在这里的意思是实验所设定的总折数，可以选择跑满。\n问题：怎么理解交叉验证折数 fold 呢？\n答：交叉验证中的折数，本质是将完整的数据集切分成的互不重叠、大小相近的子集数量 / 单个子集的标识：一方面，总折数（K） 是全局规则，决定把数据集分成 K 份，交叉验证的核心逻辑就是依次用其中 1 份做验证集、剩余 K-1 份做训练集，跑完 K 轮完成一次完整验证；另一方面，代码中单独定义的 fold 是单次执行的选择器，它既可以是 all（代表跑满 K 轮验证），也可以是具体数字，代表只针对某一个子集（某一折）执行训练 + 验证。\ncontinue_training and only_run_validation，继续训练还是仅验证，路由进函数 maybe_load_checkpoint ，这里要区分是不是使用了 nnUNet 的网络框架，如果是自己提供预训练权重，则满足 pretrained_weights_file is not None。\n">
+<title>nnUNet代码底层学习-训练</title>
+
+<link rel='canonical' href='http://localhost:1313/p/nnunet%E4%BB%A3%E7%A0%81%E5%BA%95%E5%B1%82%E5%AD%A6%E4%B9%A0-%E8%AE%AD%E7%BB%83/'>
+
+<link rel="stylesheet" href="/scss/style.min.6a692fd055deae459f2a9767f57f3855ba80cafd5041317f24f7360f6ca47cdf.css"><meta property='og:title' content="nnUNet代码底层学习-训练">
+<meta property='og:description' content="run_training.py 找到 run_training_entry() 路由进入函数，print 一下配置，如下图所示。\n路由进run_training() 函数，找到处理折数参数的代码。\n1 2 3 4 5 6 if fold != &#39;all&#39;: try: fold = int(fold) except ValueError as e: print(f&#39;Unable to convert given value for fold to int: {fold}. fold must bei either &#34;all&#34; or an integer!&#39;) raise e all 在这里的意思是实验所设定的总折数，可以选择跑满。\n问题：怎么理解交叉验证折数 fold 呢？\n答：交叉验证中的折数，本质是将完整的数据集切分成的互不重叠、大小相近的子集数量 / 单个子集的标识：一方面，总折数（K） 是全局规则，决定把数据集分成 K 份，交叉验证的核心逻辑就是依次用其中 1 份做验证集、剩余 K-1 份做训练集，跑完 K 轮完成一次完整验证；另一方面，代码中单独定义的 fold 是单次执行的选择器，它既可以是 all（代表跑满 K 轮验证），也可以是具体数字，代表只针对某一个子集（某一折）执行训练 + 验证。\ncontinue_training and only_run_validation，继续训练还是仅验证，路由进函数 maybe_load_checkpoint ，这里要区分是不是使用了 nnUNet 的网络框架，如果是自己提供预训练权重，则满足 pretrained_weights_file is not None。\n">
+<meta property='og:url' content='http://localhost:1313/p/nnunet%E4%BB%A3%E7%A0%81%E5%BA%95%E5%B1%82%E5%AD%A6%E4%B9%A0-%E8%AE%AD%E7%BB%83/'>
+<meta property='og:site_name' content='Lee Sivan&#39;s Blog'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:published_time' content='2025-11-28T13:40:43&#43;08:00'/><meta property='article:modified_time' content='2025-11-28T13:40:43&#43;08:00'/>
+<meta name="twitter:title" content="nnUNet代码底层学习-训练">
+<meta name="twitter:description" content="run_training.py 找到 run_training_entry() 路由进入函数，print 一下配置，如下图所示。\n路由进run_training() 函数，找到处理折数参数的代码。\n1 2 3 4 5 6 if fold != &#39;all&#39;: try: fold = int(fold) except ValueError as e: print(f&#39;Unable to convert given value for fold to int: {fold}. fold must bei either &#34;all&#34; or an integer!&#39;) raise e all 在这里的意思是实验所设定的总折数，可以选择跑满。\n问题：怎么理解交叉验证折数 fold 呢？\n答：交叉验证中的折数，本质是将完整的数据集切分成的互不重叠、大小相近的子集数量 / 单个子集的标识：一方面，总折数（K） 是全局规则，决定把数据集分成 K 份，交叉验证的核心逻辑就是依次用其中 1 份做验证集、剩余 K-1 份做训练集，跑完 K 轮完成一次完整验证；另一方面，代码中单独定义的 fold 是单次执行的选择器，它既可以是 all（代表跑满 K 轮验证），也可以是具体数字，代表只针对某一个子集（某一折）执行训练 + 验证。\ncontinue_training and only_run_validation，继续训练还是仅验证，路由进函数 maybe_load_checkpoint ，这里要区分是不是使用了 nnUNet 的网络框架，如果是自己提供预训练权重，则满足 pretrained_weights_file is not None。\n">
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="Toggle Menu">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/avatar_hu_c14aa3b58f97651b.png" width="300"
+                            height="311" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">Lee Sivan&#39;s Blog</a></h1>
+            <h2 class="site-description"></h2>
+        </div>
+    </header><ol class="menu-social">
+            
+                <li>
+                    <a 
+                        href='15542277303@163.com'
+                        target="_blank"
+                        title="Email"
+                        rel="me"
+                    >
+                        
+                        
+                            <?xml version="1.0" encoding="utf-8"?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+<svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M4 7.00005L10.2 11.65C11.2667 12.45 12.7333 12.45 13.8 11.65L20 7" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="3" y="5" width="18" height="14" rx="2" stroke="#000000" stroke-width="2" stroke-linecap="round"/>
+</svg>
+                        
+                    </a>
+                </li>
+            
+                <li>
+                    <a 
+                        href='https://github.com/fantsing'
+                        target="_blank"
+                        title="GitHub"
+                        rel="me"
+                    >
+                        
+                        
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5" />
+</svg>
+
+
+
+                        
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>Home</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/about/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>About</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>Archives</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>Search</span>
+            </a>
+        </li>
+        
+        <li class="menu-bottom-section">
+            <ol class="menu">
+
+                
+                    <li id="dark-mode-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <span>Dark Mode</span>
+                    </li>
+                
+            </ol>
+        </li>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">Table of contents</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li><a href="#run_trainingpy">run_training.py</a></li>
+    <li><a href="#nnunettrainerpy">nnUNetTrainer.py</a></li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+            <main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/p/nnunet%E4%BB%A3%E7%A0%81%E5%BA%95%E5%B1%82%E5%AD%A6%E4%B9%A0-%E8%AE%AD%E7%BB%83/">nnUNet代码底层学习-训练</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">Nov 28, 2025</time>
+            </div>
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+                <time class="article-time--reading">
+                    3 minute read
+                </time>
+            </div>
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <h2 id="run_trainingpy">run_training.py
+</h2><p>找到 <code>run_training_entry()</code> 路由进入函数，print 一下配置，如下图所示。</p>
+<p><img src="/images/44.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="44"
+	
+	
+></p>
+<p>路由进<code>run_training()</code> 函数，找到处理折数参数的代码。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">if</span> <span class="n">fold</span> <span class="o">!=</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="k">try</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">fold</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">fold</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unable to convert given value for fold to int: </span><span class="si">{</span><span class="n">fold</span><span class="si">}</span><span class="s1">. fold must bei either &#34;all&#34; or an integer!&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">raise</span> <span class="n">e</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>all</code> 在这里的意思是实验所设定的总折数，可以选择跑满。</p>
+<p>问题：怎么理解交叉验证折数 fold 呢？</p>
+<p>答：交叉验证中的折数，本质是将完整的数据集切分成的<strong>互不重叠、大小相近的子集数量 / 单个子集的标识</strong>：一方面，总折数（K） 是全局规则，决定把数据集分成 K 份，交叉验证的核心逻辑就是依次用其中 1 份做验证集、剩余 K-1 份做训练集，跑完 K 轮完成一次完整验证；另一方面，代码中单独定义的 <code>fold</code> 是单次执行的选择器，它既可以是 <code>all</code>（代表跑满 K 轮验证），也可以是具体数字，代表只针对某一个子集（某一折）执行训练 + 验证。</p>
+<p><code>continue_training and only_run_validation</code>，继续训练还是仅验证，路由进函数 <code>maybe_load_checkpoint</code> ，这里要区分是不是使用了 nnUNet 的网络框架，如果是自己提供预训练权重，则满足 <code>pretrained_weights_file is not None</code>。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">if</span> <span class="ow">not</span> <span class="n">only_run_validation</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">nnunet_trainer</span><span class="o">.</span><span class="n">run_training</span><span class="p">()</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>路由进函数<code>run_training</code> 位于 <code>nnUNetTrainer.py</code> 文件</p>
+<h2 id="nnunettrainerpy">nnUNetTrainer.py
+</h2><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="bp">self</span><span class="o">.</span><span class="n">on_train_start</span><span class="p">()</span>  <span class="c1">#初始化超参数、网络结构、损失函数、加载数据</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>路由进<code>on_train_start</code>函数，找到<code>initialize</code>函数，路由进去，发现其功能是初始化网络结构、优化器参数和损失函数。找到了核心网络结构代码部分如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="bp">self</span><span class="o">.</span><span class="n">network</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_network_architecture</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="bp">self</span><span class="o">.</span><span class="n">configuration_manager</span><span class="o">.</span><span class="n">network_arch_class_name</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="bp">self</span><span class="o">.</span><span class="n">configuration_manager</span><span class="o">.</span><span class="n">network_arch_init_kwargs</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="bp">self</span><span class="o">.</span><span class="n">configuration_manager</span><span class="o">.</span><span class="n">network_arch_init_kwargs_req_import</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="bp">self</span><span class="o">.</span><span class="n">num_input_channels</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="o">.</span><span class="n">num_segmentation_heads</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="bp">self</span><span class="o">.</span><span class="n">enable_deep_supervision</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>路由进 <code>build_network_architecture</code>函数，发现核心代码藏在<code>get_network_from_plans</code>函数：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">return</span> <span class="n">get_network_from_plans</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="n">architecture_class_name</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">arch_init_kwargs</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">arch_init_kwargs_req_import</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">num_input_channels</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">num_output_channels</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">allow_init</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">deep_supervision</span><span class="o">=</span><span class="n">enable_deep_supervision</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>进一步路由进去<code>get_network_from_plans</code>发现里面是直接调用了nnUNet封装好的网络</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">dynamic_network_architectures</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>但是这个并不能进一步修改网络结构，所以我在<a class="link" href="https://github.com/MIC-DKFZ/dynamic-network-architectures"  target="_blank" rel="noopener"
+    >MIC-DKFZ/dynamic-network-architectures</a>找到了网络包，下载后可以看到具体的网络结构，这里我们暂时按默认初始化。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="c1"># 定义优化器和学习率</span>
+</span></span><span class="line"><span class="cl"><span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lr_scheduler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">configure_optimizers</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 定义损失函数</span>
+</span></span><span class="line"><span class="cl"><span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_loss</span><span class="p">()</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>路由进<code>_build_loss</code>函数，发现有两个损失函数，一个是<code>DC_and_BCE_loss</code>，一个是<code>DC_and_CE_loss</code>，具体的等后面研究损失函数时再进行分析。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="c1"># 加载数据</span>
+</span></span><span class="line"><span class="cl"><span class="bp">self</span><span class="o">.</span><span class="n">dataloader_train</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataloader_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dataloaders</span><span class="p">()</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这部分内容比较重要，划分训练集和验证集。路由进<code>get_dataloaders</code>函数</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="n">rotation_for_DA</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">do_dummy_2d_data_aug</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">initial_patch_size</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">mirror_axes</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">configure_rotation_dummyDA_mirroring_and_inital_patch_size</span><span class="p">()</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这块不建议改，除非有很深刻理解。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="c1"># training pipeline</span>
+</span></span><span class="line"><span class="cl"><span class="n">tr_transforms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_training_transforms</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="n">patch_size</span><span class="p">,</span> <span class="n">rotation_for_DA</span><span class="p">,</span> <span class="n">deep_supervision_scales</span><span class="p">,</span> <span class="n">mirror_axes</span><span class="p">,</span> <span class="n">do_dummy_2d_data_aug</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">use_mask_for_norm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">configuration_manager</span><span class="o">.</span><span class="n">use_mask_for_norm</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">is_cascaded</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">is_cascaded</span><span class="p">,</span> <span class="n">foreground_labels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="o">.</span><span class="n">foreground_labels</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">regions</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="o">.</span><span class="n">foreground_regions</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="o">.</span><span class="n">has_regions</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">ignore_label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="o">.</span><span class="n">ignore_label</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># validation pipeline</span>
+</span></span><span class="line"><span class="cl"><span class="n">val_transforms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_validation_transforms</span><span class="p">(</span><span class="n">deep_supervision_scales</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                                                <span class="n">is_cascaded</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">is_cascaded</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                                                <span class="n">foreground_labels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="o">.</span><span class="n">foreground_labels</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                                                <span class="n">regions</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="o">.</span><span class="n">foreground_regions</span> <span class="k">if</span>
+</span></span><span class="line"><span class="cl">                                                <span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="o">.</span><span class="n">has_regions</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                                                <span class="n">ignore_label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="o">.</span><span class="n">ignore_label</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这块是训练集和验证集数据扩增的方式。</p>
+<p>问题：<code>self.on_train_epoch_start()</code>和<code>on_validation_epoch_start()</code>在哪里不一样，自行查找资料</p>
+<p>答：整体执行流程如下</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-plaintext" data-lang="plaintext"><span class="line"><span class="cl">1.触发 on_train_epoch_start()：
+</span></span><span class="line"><span class="cl">   → 模型切train() → 更新LR → 打印epoch和LR日志
+</span></span><span class="line"><span class="cl">执行训练迭代：遍历训练集，前向+反向+参数更新（开启梯度）
+</span></span><span class="line"><span class="cl">2.触发 on_validation_epoch_start()：
+</span></span><span class="line"><span class="cl">   → 模型切eval()
+</span></span><span class="line"><span class="cl">执行验证迭代：遍历验证集，仅前向计算（关闭梯度）
+</span></span><span class="line"><span class="cl">验证结束：记录ACC/Dice等指标，回到下一轮训练
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>比较重要的代码块</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_epoch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_epochs</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="bp">self</span><span class="o">.</span><span class="n">on_epoch_start</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="bp">self</span><span class="o">.</span><span class="n">on_train_epoch_start</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="n">train_outputs</span> <span class="o">=</span> <span class="p">[]</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">batch_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_iterations_per_epoch</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">        <span class="n">train_outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_step</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataloader_train</span><span class="p">)))</span>
+</span></span><span class="line"><span class="cl">    <span class="bp">self</span><span class="o">.</span><span class="n">on_train_epoch_end</span><span class="p">(</span><span class="n">train_outputs</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">        <span class="bp">self</span><span class="o">.</span><span class="n">on_validation_epoch_start</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="n">val_outputs</span> <span class="o">=</span> <span class="p">[]</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="n">batch_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_val_iterations_per_epoch</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">            <span class="n">val_outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">validation_step</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataloader_val</span><span class="p">)))</span>
+</span></span><span class="line"><span class="cl">        <span class="bp">self</span><span class="o">.</span><span class="n">on_validation_epoch_end</span><span class="p">(</span><span class="n">val_outputs</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="bp">self</span><span class="o">.</span><span class="n">on_epoch_end</span><span class="p">()</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>路由进<code>train_step</code>函数</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">network</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># del data</span>
+</span></span><span class="line"><span class="cl">    <span class="n">l</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这部分是前向传播，输入图像，输出预测结果，然后计算预测值和真实值的差距。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">grad_scaler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="bp">self</span><span class="o">.</span><span class="n">grad_scaler</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">l</span><span class="p">)</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="bp">self</span><span class="o">.</span><span class="n">grad_scaler</span><span class="o">.</span><span class="n">unscale_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">clip_grad_norm_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="mi">12</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="bp">self</span><span class="o">.</span><span class="n">grad_scaler</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="bp">self</span><span class="o">.</span><span class="n">grad_scaler</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这部分就是很重要的反向传播过程了，会有几个问题，作出解答。</p>
+<p>问题：为什么要 Scale ？</p>
+<p>答：FP16 能表示的最小正数大约是 $6 \times 10^{-5}$。如果梯度非常小（比如 $10^{-6}$），在 FP16 下就会变成 0，模型就学不到东西了。在反向传播前，把 Loss 放大很多倍，这样梯度也会跟着放大。</p>
+<p>问题：为什么要 Unscale？</p>
+<p>答：刚才我们把梯度放大了，现在要更新参数前，得把它还原回去， unscale 在这里出现的主要目的是为了下一步的梯度裁剪。要裁剪梯度，必须知道梯度的真实大小，而不是放大后的大小。</p>
+<p>问题：clip_grad_norm的作用？</p>
+<p>作用： 如果计算出的梯度向量太长（模长超过 12），就强行把它缩短到 12。 医学图像数据波动大，有时会导致 Loss 剧烈震荡，产生巨大的梯度把模型权重变成 NaN。12 是 nnU-Net 作者经过大量实验得出的经验值。</p>
+<p>问题：scaler.step 和 scaler.update的作用？</p>
+<p>step：既然梯度在第一步被放大了，scaler.step 会在内部自动把梯度除回去（unscale），然后应用到权重上。</p>
+<p>update：根据这一轮是否发生了梯度溢出（Infinity/NaN），动态调整下一轮的放大倍数。如果这轮没事，下轮尝试放大更多倍；如果溢出了，下轮就缩小倍数。</p>
+<p>路由进 <code>validation_step</code>函数</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_deep_supervision</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">output</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">        <span class="n">target</span> <span class="o">=</span> <span class="n">target</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>训练时，我们用了多尺度的输出（output）来辅助训练。而此处验证， 我们只关心全分辨率的那张图（通常是第 0 个）。这里直接取 [0]，丢弃其他的。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="o">.</span><span class="n">has_regions</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">predicted_segmentation_onehot</span> <span class="o">=</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">output</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">)</span><span class="o">.</span><span class="n">long</span><span class="p">()</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>基于区域的分割 (Region-based)，这些区域在空间上是重叠的。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">else</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="c1"># 找到概率最大的类别</span>
+</span></span><span class="line"><span class="cl">        <span class="n">output_seg</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="mi">1</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">        <span class="c1"># 准备一个全 0 的 One-Hot 容器</span>
+</span></span><span class="line"><span class="cl">        <span class="n">predicted_segmentation_onehot</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">output</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="c1"># 把预测结果填进去</span>
+</span></span><span class="line"><span class="cl">        <span class="n">predicted_segmentation_onehot</span><span class="o">.</span><span class="n">scatter_</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">output_seg</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">del</span> <span class="n">output_seg</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>普通多分类，概率最大的标签就是1，其他赋0，这步有 one-hot</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="o">.</span><span class="n">has_ignore_label</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="o">.</span><span class="n">has_regions</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">target</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="o">.</span><span class="n">ignore_label</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="c1"># CAREFUL that you don&#39;t rely on target after this line!</span>
+</span></span><span class="line"><span class="cl">        <span class="n">target</span><span class="p">[</span><span class="n">target</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="o">.</span><span class="n">ignore_label</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</span></span><span class="line"><span class="cl">    <span class="k">else</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="n">target</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">bool</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="n">mask</span> <span class="o">=</span> <span class="o">~</span><span class="n">target</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">:]</span>
+</span></span><span class="line"><span class="cl">        <span class="k">else</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="n">mask</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">target</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">:]</span>
+</span></span><span class="line"><span class="cl">        <span class="c1"># CAREFUL that you don&#39;t rely on target after this line!</span>
+</span></span><span class="line"><span class="cl">        <span class="n">target</span> <span class="o">=</span> <span class="n">target</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl"><span class="k">else</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">mask</span> <span class="o">=</span> <span class="kc">None</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>数据集不完整的时候，只标个未知的情况下，直接剔除。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="n">tp</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">get_tp_fp_fn_tn</span><span class="p">(</span><span class="n">predicted_segmentation_onehot</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="n">axes</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">tp_hard</span> <span class="o">=</span> <span class="n">tp</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="n">fp_hard</span> <span class="o">=</span> <span class="n">fp</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="n">fn_hard</span> <span class="o">=</span> <span class="n">fn</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>TP (True Positive): 预测对了的前景像素数。</p>
+<p>FP (False Positive): 把背景错认成前景的像素数（误报）。</p>
+<p>FN (False Negative): 把前景漏掉的像素数（漏报）。</p>
+<p>但是需要注意，这里还没有计算出 Dice 分数，真正计算是在<code>on_validation_epoch_end</code>函数里。</p>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+
+    
+    <section class="article-copyright">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <path d="M14.5 9a3.5 4 0 1 0 0 6" />
+</svg>
+
+
+
+        <span>Licensed under CC BY-NC-SA 4.0</span>
+    </section>
+    </footer>
+
+
+    
+        <link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI&#43;WdtXRGWt2kTvGFasHpSy3SV"crossorigin="anonymous"
+            ><script 
+                src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG&#43;vnGctmUb0ZY0l8"crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"integrity="sha384-&#43;VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4&#43;/RRE05"crossorigin="anonymous"
+                defer
+                >
+            </script><script>
+    window.addEventListener("DOMContentLoaded", () => {
+	const mainArticleElement = document.querySelector(".main-article");
+        renderMathInElement(mainArticleElement, {
+            delimiters: [
+                { left: "$$", right: "$$", display: true },
+                { left: "$", right: "$", display: false },
+                { left: "\\(", right: "\\)", display: false },
+                { left: "\\[", right: "\\]", display: true }
+            ],
+            ignoredClasses: ["gist"]
+        });})
+</script>
+
+    
+</article>
+
+    
+
+    
+
+     
+    
+        
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2020 - 
+        
+        2025 Lee Sivan
+    </section>
+    
+    <section class="powerby">
+        Built with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> <br />
+        Theme <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.31.0">Stack</a></b> designed by <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a>
+    </section>
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/ts/main.3d43a4c340fa2445bd8771f06cfa9701c142ab408309ca21aa0c14c87ea44dc1.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+    </body>
+</html>
