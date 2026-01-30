@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="预备知识 Number 数字 int：1\nfloat：1.1\ncomplex：4+3j\nBool：True/False\n运算：+（加） -（减） ×（乘） /（除） //（整除） %（取余）\n取绝对值：abs(-1)=1\n最大最小：max(1,2,3)=3，min(1,2,3)=1\npow(x,y) = $x^y$\nsqrt(x) = $\\sqrt{x}$\nList 列表 a = [1,2,3,4,5]\n查找：a[0]:1 a[1]:2\n增加：a.append(6)，a=[1,2,3,4,5,6]\n更新：a[0]=9，a=[9,2,3,4,5,6]\n删除：a.pop(0)，a=[2,3,4,5,6]，pop会返回删除的值，a.pop()，默认删除最后一个\n常用函数：a=[2,3,4,5]\nlen(a):4\nmax(a):5\nmin(a):2\nrange(0,10) = range(10) : 0,1,2,&hellip;,9\na.reverse()，a=[5,4,3,2]\na.clear()，a:[]\n迭代/遍历 List\n1 2 for x in a: print(x) 1 2 for index in range(len(a): print(a[index]) List comrehension\n1 2 3 a = [1,2,3,4,5] b = [i*i for i in a] b = [1,4,9,16,25] if condition\n1 2 3 a = [1,2,3,4,5] b = [i*i if i&lt;3 else i for i in a] b = [1,4,3,4,5] Tuple 元组 List: [1,1.5,&ldquo;abc&rdquo;] 增删改查\n">
+<title>LeetCode-Day1</title>
+
+<link rel='canonical' href='http://localhost:1313/p/leetcode-day1/'>
+
+<link rel="stylesheet" href="/scss/style.min.6a692fd055deae459f2a9767f57f3855ba80cafd5041317f24f7360f6ca47cdf.css"><meta property='og:title' content="LeetCode-Day1">
+<meta property='og:description' content="预备知识 Number 数字 int：1\nfloat：1.1\ncomplex：4+3j\nBool：True/False\n运算：+（加） -（减） ×（乘） /（除） //（整除） %（取余）\n取绝对值：abs(-1)=1\n最大最小：max(1,2,3)=3，min(1,2,3)=1\npow(x,y) = $x^y$\nsqrt(x) = $\\sqrt{x}$\nList 列表 a = [1,2,3,4,5]\n查找：a[0]:1 a[1]:2\n增加：a.append(6)，a=[1,2,3,4,5,6]\n更新：a[0]=9，a=[9,2,3,4,5,6]\n删除：a.pop(0)，a=[2,3,4,5,6]，pop会返回删除的值，a.pop()，默认删除最后一个\n常用函数：a=[2,3,4,5]\nlen(a):4\nmax(a):5\nmin(a):2\nrange(0,10) = range(10) : 0,1,2,&hellip;,9\na.reverse()，a=[5,4,3,2]\na.clear()，a:[]\n迭代/遍历 List\n1 2 for x in a: print(x) 1 2 for index in range(len(a): print(a[index]) List comrehension\n1 2 3 a = [1,2,3,4,5] b = [i*i for i in a] b = [1,4,9,16,25] if condition\n1 2 3 a = [1,2,3,4,5] b = [i*i if i&lt;3 else i for i in a] b = [1,4,3,4,5] Tuple 元组 List: [1,1.5,&ldquo;abc&rdquo;] 增删改查\n">
+<meta property='og:url' content='http://localhost:1313/p/leetcode-day1/'>
+<meta property='og:site_name' content='Lee Sivan&#39;s Blog'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:published_time' content='2025-12-21T13:40:43&#43;08:00'/><meta property='article:modified_time' content='2025-12-21T13:40:43&#43;08:00'/>
+<meta name="twitter:title" content="LeetCode-Day1">
+<meta name="twitter:description" content="预备知识 Number 数字 int：1\nfloat：1.1\ncomplex：4+3j\nBool：True/False\n运算：+（加） -（减） ×（乘） /（除） //（整除） %（取余）\n取绝对值：abs(-1)=1\n最大最小：max(1,2,3)=3，min(1,2,3)=1\npow(x,y) = $x^y$\nsqrt(x) = $\\sqrt{x}$\nList 列表 a = [1,2,3,4,5]\n查找：a[0]:1 a[1]:2\n增加：a.append(6)，a=[1,2,3,4,5,6]\n更新：a[0]=9，a=[9,2,3,4,5,6]\n删除：a.pop(0)，a=[2,3,4,5,6]，pop会返回删除的值，a.pop()，默认删除最后一个\n常用函数：a=[2,3,4,5]\nlen(a):4\nmax(a):5\nmin(a):2\nrange(0,10) = range(10) : 0,1,2,&hellip;,9\na.reverse()，a=[5,4,3,2]\na.clear()，a:[]\n迭代/遍历 List\n1 2 for x in a: print(x) 1 2 for index in range(len(a): print(a[index]) List comrehension\n1 2 3 a = [1,2,3,4,5] b = [i*i for i in a] b = [1,4,9,16,25] if condition\n1 2 3 a = [1,2,3,4,5] b = [i*i if i&lt;3 else i for i in a] b = [1,4,3,4,5] Tuple 元组 List: [1,1.5,&ldquo;abc&rdquo;] 增删改查\n">
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="Toggle Menu">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/avatar_hu_c14aa3b58f97651b.png" width="300"
+                            height="311" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">Lee Sivan&#39;s Blog</a></h1>
+            <h2 class="site-description"></h2>
+        </div>
+    </header><ol class="menu-social">
+            
+                <li>
+                    <a 
+                        href='15542277303@163.com'
+                        target="_blank"
+                        title="Email"
+                        rel="me"
+                    >
+                        
+                        
+                            <?xml version="1.0" encoding="utf-8"?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+<svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M4 7.00005L10.2 11.65C11.2667 12.45 12.7333 12.45 13.8 11.65L20 7" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="3" y="5" width="18" height="14" rx="2" stroke="#000000" stroke-width="2" stroke-linecap="round"/>
+</svg>
+                        
+                    </a>
+                </li>
+            
+                <li>
+                    <a 
+                        href='https://github.com/fantsing'
+                        target="_blank"
+                        title="GitHub"
+                        rel="me"
+                    >
+                        
+                        
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5" />
+</svg>
+
+
+
+                        
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>Home</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/about/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>About</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>Archives</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>Search</span>
+            </a>
+        </li>
+        
+        <li class="menu-bottom-section">
+            <ol class="menu">
+
+                
+                    <li id="dark-mode-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <span>Dark Mode</span>
+                    </li>
+                
+            </ol>
+        </li>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">Table of contents</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li><a href="#预备知识">预备知识</a>
+      <ol>
+        <li><a href="#number-数字">Number 数字</a></li>
+        <li><a href="#list-列表">List 列表</a></li>
+        <li><a href="#tuple-元组">Tuple 元组</a></li>
+        <li><a href="#set-集合">Set 集合</a></li>
+        <li><a href="#dictionary-字典">Dictionary 字典</a></li>
+        <li><a href="#string-字符串">String 字符串</a></li>
+        <li><a href="#array-数组">Array 数组</a></li>
+        <li><a href="#linkedlist-链表">Linkedlist 链表</a></li>
+        <li><a href="#hash-table-哈希表">Hash Table 哈希表</a></li>
+        <li><a href="#queue-队列">Queue 队列</a></li>
+        <li><a href="#stack-栈">Stack 栈</a></li>
+        <li><a href="#heap-堆">Heap 堆</a></li>
+        <li><a href="#tree-树">Tree 树</a></li>
+      </ol>
+    </li>
+    <li><a href="#1-两数之和">1. 两数之和</a></li>
+    <li><a href="#49-字母异位词分组">49. 字母异位词分组</a></li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+            <main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/p/leetcode-day1/">LeetCode-Day1</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">Dec 21, 2025</time>
+            </div>
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+                <time class="article-time--reading">
+                    3 minute read
+                </time>
+            </div>
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <h2 id="预备知识">预备知识
+</h2><h3 id="number-数字">Number 数字
+</h3><p>int：1</p>
+<p>float：1.1</p>
+<p>complex：4+3j</p>
+<p>Bool：True/False</p>
+<p>运算：+（加） -（减） ×（乘） /（除） //（整除） %（取余）</p>
+<p>取绝对值：abs(-1)=1</p>
+<p>最大最小：max(1,2,3)=3，min(1,2,3)=1</p>
+<p>pow(x,y) = $x^y$</p>
+<p>sqrt(x) = $\sqrt{x}$</p>
+<h3 id="list-列表">List 列表
+</h3><p>a = [1,2,3,4,5]</p>
+<p>查找：a[0]:1      a[1]:2</p>
+<p>增加：a.append(6)，a=[1,2,3,4,5,6]</p>
+<p>更新：a[0]=9，a=[9,2,3,4,5,6]</p>
+<p>删除：a.pop(0)，a=[2,3,4,5,6]，pop会返回删除的值，a.pop()，默认删除最后一个</p>
+<hr>
+<p>常用函数：a=[2,3,4,5]</p>
+<p>len(a):4</p>
+<p>max(a):5</p>
+<p>min(a):2</p>
+<p>range(0,10) = range(10) : 0,1,2,&hellip;,9</p>
+<p>a.reverse()，a=[5,4,3,2]</p>
+<p>a.clear()，a:[]</p>
+<hr>
+<p>迭代/遍历 List</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">a</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">	<span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl"> 	<span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>   
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>List comrehension</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl"><span class="n">b</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">a</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl"><span class="n">b</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">16</span><span class="p">,</span><span class="mi">25</span><span class="p">]</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>if condition</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl"><span class="n">b</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="n">i</span> <span class="k">if</span> <span class="n">i</span><span class="o">&lt;</span><span class="mi">3</span> <span class="k">else</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">a</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl"><span class="n">b</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">]</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="tuple-元组">Tuple 元组
+</h3><p>List: [1,1.5,&ldquo;abc&rdquo;] 增删改查</p>
+<p>Tuple:(1,1.5,&ldquo;abc&rdquo;) 只有查</p>
+<p>Tuple 查找：</p>
+<p>a=(1,1.5,&ldquo;abc&rdquo;)</p>
+<p>a[0]=1,a[1]=1.5,a[2]=&ldquo;abc&rdquo;</p>
+<hr>
+<p>str/char</p>
+<p>常用函数：</p>
+<p>len(),max(),min()</p>
+<p>in 操作</p>
+<p>slice 切片操作，可以用于list/tuple</p>
+<p>a=[1,2,3,4,5]</p>
+<p>b=(1,2,3,4,5)</p>
+<p>a[0:3]:0,1,2 [1,2,3]</p>
+<p>b[0:3]:0,1,2 (1,2,3)</p>
+<p>start:0,end:3,左闭右开</p>
+<p>最后一位元素，可以用a[-1]表示</p>
+<p>a[2:-1],取不到最后一个元素</p>
+<p>a[2: ]:取到最后一个元素</p>
+<h3 id="set-集合">Set 集合
+</h3><p>a={1,1.5,&ldquo;abc&rdquo;},无序不重复</p>
+<p>&ldquo;abc&rdquo; in a -&gt; True</p>
+<p>增：a.add(1) -&gt; {1,1.5,&ldquo;abc&rdquo;}</p>
+<p>​	a.add(2) -&gt; {1,2,1.5,&ldquo;abc&rdquo;}</p>
+<p>改：a.update(a) -&gt; {1,2,1.5,&ldquo;abc&rdquo;}</p>
+<p>a.update({4,5}) -&gt; {1,2,1.5,&ldquo;abc&rdquo;,4,5}</p>
+<p>删：a.remove(2) = {1,1.5,&ldquo;abc&rdquo;,4,5}</p>
+<p>len/max/min</p>
+<hr>
+<p>= | &amp; ^</p>
+<p>a = {1,2,3}   b = {2,5,9}</p>
+<p>a - b</p>
+<p>a | b 或</p>
+<p>a &amp; b 与</p>
+<p>a ^ b 不同时有的</p>
+<h3 id="dictionary-字典">Dictionary 字典
+</h3><p>dict = {&ldquo;name&rdquo;:&ldquo;learning&rdquo;,&ldquo;age&rdquo;:18}</p>
+<p>key:value,利用key找value</p>
+<p>查：</p>
+<p>dict[&ldquo;name&rdquo;]:learning</p>
+<p>dict[&ldquo;age&rdquo;]:18</p>
+<p>增：</p>
+<p>dict[&ldquo;platform&rdquo;]=&ldquo;youtube&rdquo;</p>
+<p>dict: name age platform</p>
+<p>改：</p>
+<p>dict[&ldquo;platform&rdquo;]=&ldquo;bilibili&rdquo;</p>
+<p>删：</p>
+<p>dict.pop(&ldquo;platform&rdquo;)</p>
+<hr>
+<p>遍历</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&#34;name&#34;</span><span class="p">:</span><span class="s2">&#34;staywithlearning&#34;</span><span class="p">,</span><span class="s2">&#34;age&#34;</span><span class="p">:</span><span class="mi">18</span><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># &#34;name&#34; in dict -&gt; True</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">dict</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">   
+</span></span><span class="line"><span class="cl"><span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">dict</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">	<span class="nb">print</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl"><span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="string-字符串">String 字符串
+</h3><p>s = &ldquo;hello world&rdquo;</p>
+<p>s[0]:h, s[-1]:d</p>
+<p>s[:]:&ldquo;hello world&rdquo;</p>
+<p>s[0:4]:&ldquo;hell&rdquo;</p>
+<p>len(s),max(s),min(s)</p>
+<p>s.count(&ldquo;h&rdquo;):1</p>
+<p>s.isupper():False 判断是否都为大写字母</p>
+<p>s.islower():True 判断是否都为小写字母</p>
+<p>s.isdigit():False</p>
+<p>s.lower()-&gt;改为全小写</p>
+<p>s.upper()-&gt;改为全大写</p>
+<p>s.strip()-&gt;去掉空格</p>
+<p>s.lstrip()-&gt;去掉左边空格</p>
+<p>s.rstrip()-&gt;去掉右边空格</p>
+<p>s.swapcase()-&gt;把大写变为小写，吧小写变为大写</p>
+<p>replace(old,new). s.repalce(&ldquo;l&rdquo;,&ldquo;E&rdquo;)</p>
+<p>split(), s.split(&quot; &ldquo;)，返回list，[&lsquo;hello&rsquo;,&lsquo;world&rsquo;]</p>
+<h3 id="array-数组">Array 数组
+</h3><p>读非常快，查询、插入、删除非常慢</p>
+<h3 id="linkedlist-链表">Linkedlist 链表
+</h3><p>数组 VS 链表</p>
+<p>数组访问非常快，搜索、插入和删除很慢</p>
+<p>链表插入和删除非常快，访问，搜索都很慢</p>
+<h3 id="hash-table-哈希表">Hash Table 哈希表
+</h3><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="c1">#常见的hash table：dict</span>
+</span></span><span class="line"><span class="cl"><span class="n">score</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="s2">&#34;张三&#34;</span><span class="p">:</span> <span class="mi">90</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="s2">&#34;李四&#34;</span><span class="p">:</span> <span class="mi">85</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="s2">&#34;王五&#34;</span><span class="p">:</span> <span class="mi">92</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#查</span>
+</span></span><span class="line"><span class="cl"><span class="nb">print</span><span class="p">(</span><span class="n">score</span><span class="p">[</span><span class="s2">&#34;张三&#34;</span><span class="p">])</span>   <span class="c1"># 90</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#增</span>
+</span></span><span class="line"><span class="cl"><span class="n">score</span><span class="p">[</span><span class="s2">&#34;赵六&#34;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">88</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#改</span>
+</span></span><span class="line"><span class="cl"><span class="n">score</span><span class="p">[</span><span class="s2">&#34;李四&#34;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">95</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#删</span>
+</span></span><span class="line"><span class="cl"><span class="k">del</span> <span class="n">score</span><span class="p">[</span><span class="s2">&#34;王五&#34;</span><span class="p">]</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Python 的 dict 和 set 底层是哈希表。
+哈希表通过 hash(key) 直接算出存放位置，所以查找特别快。
+只有“不可变”的东西，才能当哈希表的 key。</p>
+<h3 id="queue-队列">Queue 队列
+</h3><p>特点：FIFO（先入先出）</p>
+<p>双端队列：两边都可进出</p>
+<p>List，deque</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">deque</span>
+</span></span><span class="line"><span class="cl">	<span class="n">q</span> <span class="o">=</span> <span class="n">deque</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>  
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>append()，尾部增加</p>
+<p>popleft()，头部删除</p>
+<p>上面一起使用，底下一起使用</p>
+<p>appendlef()，头部增加</p>
+<p>pop()，尾部删除</p>
+<h3 id="stack-栈">Stack 栈
+</h3><p>特点：LIFO（后入先出）</p>
+<p>append()</p>
+<p>pop()</p>
+<p>len(),max(),min()</p>
+<h3 id="heap-堆">Heap 堆
+</h3><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">heapq</span> <span class="kn">import</span> <span class="n">heapify</span><span class="p">,</span><span class="n">heappush</span><span class="p">,</span><span class="n">heappop</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl"><span class="n">heapify</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>  <span class="c1"># 小堆</span>
+</span></span><span class="line"><span class="cl"><span class="n">heappush</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span>	<span class="c1"># 增加</span>
+</span></span><span class="line"><span class="cl"><span class="n">heappop</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="c1"># a = [2,3,4]</span>
+</span></span><span class="line"><span class="cl"><span class="n">nlargest</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">a</span><span class="p">)</span> <span class="c1"># [3,4]</span>
+</span></span><span class="line"><span class="cl"><span class="n">nsmallest</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">a</span><span class="p">)</span> <span class="c1"># [2,3]</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>大堆乘-1，后按小堆算</p>
+<h3 id="tree-树">Tree 树
+</h3><p>高，深，层</p>
+<p>二叉树，普通二叉树，满二叉树（除了叶子节点，每个节点都有左右两个子节点），完全二叉树（从上至下，从左至右编号，编号的节点与满二叉树节点的位置相同）。</p>
+<p>二叉树的遍历</p>
+<p>前序遍历，根左右</p>
+<p>中序遍历，左根右</p>
+<p>后序遍历，左右根</p>
+<h2 id="1-两数之和">1. 两数之和
+</h2><p>哈希表解法</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="k">def</span> <span class="nf">twoSum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nums</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">target</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">seen</span> <span class="o">=</span> <span class="p">{}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">nums</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">            <span class="n">com</span> <span class="o">=</span> <span class="n">target</span> <span class="o">-</span> <span class="n">num</span>
+</span></span><span class="line"><span class="cl">            <span class="k">if</span> <span class="n">com</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">                <span class="k">return</span> <span class="p">[</span><span class="n">seen</span><span class="p">[</span><span class="n">com</span><span class="p">],</span><span class="n">i</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">            <span class="k">else</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">                <span class="n">seen</span><span class="p">[</span><span class="n">num</span><span class="p">]</span><span class="o">=</span><span class="n">i</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="p">[]</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>暴力解法</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="k">def</span> <span class="nf">twoSum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nums</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">target</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">                <span class="k">if</span> <span class="n">nums</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">nums</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="n">target</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">                    <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="p">[]</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="49-字母异位词分组">49. 字母异位词分组
+</h2><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="k">def</span> <span class="nf">groupAnagrams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">strs</span><span class="p">:</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">box</span> <span class="o">=</span> <span class="p">{}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">strs</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="n">sorted_key</span> <span class="o">=</span> <span class="s2">&#34;&#34;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">            <span class="k">if</span> <span class="n">sorted_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">box</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">                <span class="n">box</span><span class="p">[</span><span class="n">sorted_key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span></span><span class="line"><span class="cl">            <span class="n">box</span><span class="p">[</span><span class="n">sorted_key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">box</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div>
+</section>
+
+
+    <footer class="article-footer">
+    
+
+    
+    <section class="article-copyright">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <path d="M14.5 9a3.5 4 0 1 0 0 6" />
+</svg>
+
+
+
+        <span>Licensed under CC BY-NC-SA 4.0</span>
+    </section>
+    </footer>
+
+
+    
+        <link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI&#43;WdtXRGWt2kTvGFasHpSy3SV"crossorigin="anonymous"
+            ><script 
+                src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG&#43;vnGctmUb0ZY0l8"crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"integrity="sha384-&#43;VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4&#43;/RRE05"crossorigin="anonymous"
+                defer
+                >
+            </script><script>
+    window.addEventListener("DOMContentLoaded", () => {
+	const mainArticleElement = document.querySelector(".main-article");
+        renderMathInElement(mainArticleElement, {
+            delimiters: [
+                { left: "$$", right: "$$", display: true },
+                { left: "$", right: "$", display: false },
+                { left: "\\(", right: "\\)", display: false },
+                { left: "\\[", right: "\\]", display: true }
+            ],
+            ignoredClasses: ["gist"]
+        });})
+</script>
+
+    
+</article>
+
+    
+
+    
+
+     
+    
+        
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2020 - 
+        
+        2026 Lee Sivan
+    </section>
+    
+    <section class="powerby">
+        Built with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> <br />
+        Theme <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.31.0">Stack</a></b> designed by <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a>
+    </section>
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/ts/main.3d43a4c340fa2445bd8771f06cfa9701c142ab408309ca21aa0c14c87ea44dc1.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+    </body>
+</html>

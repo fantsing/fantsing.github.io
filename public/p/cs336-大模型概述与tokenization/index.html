@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
     <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset='utf-8'>
-<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="GoogLeNet学习 概论 在2014年的ImageNet挑战赛(ILSVRC14)上，GoogLeNetz和VGGNet成为了当年的双雄。GoogLeNet获得了图片分类大赛的第一名，VGGNet紧随其后。这两种模型的共同特点是网络深度更深。VGGNet;是基于LeNetz和AlexNet的一些框架结构，GoogLeNet则采用了更加大胆的网络结构。尽管GoogLeNet仅有22层，它的尺寸比AlexNet和VGGNet要小得多。\nGoogLeNet的参数数量为500万个，而AlexNet的参数数量是GoogLeNet的12倍，VGGNet的参数数量又是AlexNet的3倍。因此，当内存或计算资源有限时，GoogLeNet是更好的选择。从模型结果来看，GoogLeNet的性能表现更加优越。GoogLeNet是谷歌公司研究出来的深度网络结构，命名为GoogLeNet而不是GoogleNet的原因据说是为了向LeNet致敬。\n研发动机 一般来说，提升网络性能最直接的办法就是增加网络深度和宽度，或者输入数据的大小；但这种方式存在以下问题：\n参数太多：如果训练数据集有限，参数太多很容易产生过拟合。 难以应用：网络越大、参数越多，计算复杂度越大，导致应用问题。 难以优化模型：网络越深，越容易出现梯度弥散问题（梯度越往后越容易消失）难以进行模型优化。 原理学习 Inception结构 待完成学习&hellip;&hellip;\n">
-<title>GoogLeNet学习</title>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="Overview and Tokenization Overview 一个很直接的问题：研究者与底层的技术正在越来越脱节。八年前，学者会补充并训练他们自己的模型，六年前还会下载一个模型再 fine-tune，而现在学者们只会向闭源模型（GPT-4/Claude/Gemini）提问。当然这是一个比较夸张的说法，但现在确实随着模型能力的提升，很多基础的工作不再需要研究者去深究了。Full understanding of this technology is necessary for fundamental research.\n通过这个课程能学到:\nMechanics: how things work (什么是 Transformer, 模型如何并行使用 GPU) Mindset: 最大化利用硬件的显存，scaling laws！ Intuitions: 什么样的 data 和 modeling decisions 会有更好的结果 还特别强调了该课程最核心的理念：maximize efficiency! 也就是在给定你的数据和特定 GPU 的情况下，什么是能够训练出来的最好的模型。\n正式课程从模型的整体发展历史开始，讲了下不同关键时间点模型的变化情况，其中在讲到开源的时候，第一次看到了对开源的不同的定义，感觉还挺有意思的，他把开源分了两种类型，一种叫 Open-weight models（比如 DeepSeek），另一种叫 Open-source models（比如 OLMo），前者公开模型权重，架构细节，但只提供部分训练细节，没有数据细节；而后者基本全部都公开，但也没有提供训练过程的失败案例。\nTokenization LLM 需要把概率分布置于 token 序列（通常用整数索引表示），所以我们需要将初始文本的字符串 encode 成 token，又需要将 token decode 回字符串，这时候就需要有 Tokenizer 来完成这些事情。\n视频中的分词器网站如下：Tiktokenizer\n然后讲了几个 Tokenization 的不同方法，并介绍了目前主流的大家都在用的。\nCharacter-based tokenization：每个 character 被转换成一个 code point（整数），这样对每种语言的处理都很方便，但问题是 vocabulary 太大，有些 character 不常用，这样转换效率不高； Byte-based tokenization：转换成字节序列，可以把表征范围限制在 0-255，问题是有些 character 会被转换为 \\xf0\\x9f\\x8c\\x8d，序列太长，而 transformer 的上下文长度是有限的； Word-based tokenization：将字符串分割成单词，然后将这些分割的结果映射成整数，但问题词表可能变得巨大，包含很多不常见的词汇，voc abulary 的大小不确定； Byte Pair Encoding (BPE)。在 BPE 之前普遍用 word-base，之后从 GPT-2 开始使用 BPE。基本思想是在原始的文本上训练 tokenizer，自动确定 vocabulary，也就是常见的 vocabulary 用单一的 token 表示，很少出现的 vocabulary 用多个 token 表示。\n">
+<title>CS336-大模型概述与tokenization</title>
 
-<link rel='canonical' href='http://localhost:1313/p/googlenet%E5%AD%A6%E4%B9%A0/'>
+<link rel='canonical' href='http://localhost:1313/p/cs336-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E6%A6%82%E8%BF%B0%E4%B8%8Etokenization/'>
 
-<link rel="stylesheet" href="/scss/style.min.6a692fd055deae459f2a9767f57f3855ba80cafd5041317f24f7360f6ca47cdf.css"><meta property='og:title' content="GoogLeNet学习">
-<meta property='og:description' content="GoogLeNet学习 概论 在2014年的ImageNet挑战赛(ILSVRC14)上，GoogLeNetz和VGGNet成为了当年的双雄。GoogLeNet获得了图片分类大赛的第一名，VGGNet紧随其后。这两种模型的共同特点是网络深度更深。VGGNet;是基于LeNetz和AlexNet的一些框架结构，GoogLeNet则采用了更加大胆的网络结构。尽管GoogLeNet仅有22层，它的尺寸比AlexNet和VGGNet要小得多。\nGoogLeNet的参数数量为500万个，而AlexNet的参数数量是GoogLeNet的12倍，VGGNet的参数数量又是AlexNet的3倍。因此，当内存或计算资源有限时，GoogLeNet是更好的选择。从模型结果来看，GoogLeNet的性能表现更加优越。GoogLeNet是谷歌公司研究出来的深度网络结构，命名为GoogLeNet而不是GoogleNet的原因据说是为了向LeNet致敬。\n研发动机 一般来说，提升网络性能最直接的办法就是增加网络深度和宽度，或者输入数据的大小；但这种方式存在以下问题：\n参数太多：如果训练数据集有限，参数太多很容易产生过拟合。 难以应用：网络越大、参数越多，计算复杂度越大，导致应用问题。 难以优化模型：网络越深，越容易出现梯度弥散问题（梯度越往后越容易消失）难以进行模型优化。 原理学习 Inception结构 待完成学习&hellip;&hellip;\n">
-<meta property='og:url' content='http://localhost:1313/p/googlenet%E5%AD%A6%E4%B9%A0/'>
+<link rel="stylesheet" href="/scss/style.min.6a692fd055deae459f2a9767f57f3855ba80cafd5041317f24f7360f6ca47cdf.css"><meta property='og:title' content="CS336-大模型概述与tokenization">
+<meta property='og:description' content="Overview and Tokenization Overview 一个很直接的问题：研究者与底层的技术正在越来越脱节。八年前，学者会补充并训练他们自己的模型，六年前还会下载一个模型再 fine-tune，而现在学者们只会向闭源模型（GPT-4/Claude/Gemini）提问。当然这是一个比较夸张的说法，但现在确实随着模型能力的提升，很多基础的工作不再需要研究者去深究了。Full understanding of this technology is necessary for fundamental research.\n通过这个课程能学到:\nMechanics: how things work (什么是 Transformer, 模型如何并行使用 GPU) Mindset: 最大化利用硬件的显存，scaling laws！ Intuitions: 什么样的 data 和 modeling decisions 会有更好的结果 还特别强调了该课程最核心的理念：maximize efficiency! 也就是在给定你的数据和特定 GPU 的情况下，什么是能够训练出来的最好的模型。\n正式课程从模型的整体发展历史开始，讲了下不同关键时间点模型的变化情况，其中在讲到开源的时候，第一次看到了对开源的不同的定义，感觉还挺有意思的，他把开源分了两种类型，一种叫 Open-weight models（比如 DeepSeek），另一种叫 Open-source models（比如 OLMo），前者公开模型权重，架构细节，但只提供部分训练细节，没有数据细节；而后者基本全部都公开，但也没有提供训练过程的失败案例。\nTokenization LLM 需要把概率分布置于 token 序列（通常用整数索引表示），所以我们需要将初始文本的字符串 encode 成 token，又需要将 token decode 回字符串，这时候就需要有 Tokenizer 来完成这些事情。\n视频中的分词器网站如下：Tiktokenizer\n然后讲了几个 Tokenization 的不同方法，并介绍了目前主流的大家都在用的。\nCharacter-based tokenization：每个 character 被转换成一个 code point（整数），这样对每种语言的处理都很方便，但问题是 vocabulary 太大，有些 character 不常用，这样转换效率不高； Byte-based tokenization：转换成字节序列，可以把表征范围限制在 0-255，问题是有些 character 会被转换为 \\xf0\\x9f\\x8c\\x8d，序列太长，而 transformer 的上下文长度是有限的； Word-based tokenization：将字符串分割成单词，然后将这些分割的结果映射成整数，但问题词表可能变得巨大，包含很多不常见的词汇，voc abulary 的大小不确定； Byte Pair Encoding (BPE)。在 BPE 之前普遍用 word-base，之后从 GPT-2 开始使用 BPE。基本思想是在原始的文本上训练 tokenizer，自动确定 vocabulary，也就是常见的 vocabulary 用单一的 token 表示，很少出现的 vocabulary 用多个 token 表示。\n">
+<meta property='og:url' content='http://localhost:1313/p/cs336-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E6%A6%82%E8%BF%B0%E4%B8%8Etokenization/'>
 <meta property='og:site_name' content='Lee Sivan&#39;s Blog'>
-<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:published_time' content='2025-12-21T13:40:43&#43;08:00'/><meta property='article:modified_time' content='2025-12-21T13:40:43&#43;08:00'/>
-<meta name="twitter:title" content="GoogLeNet学习">
-<meta name="twitter:description" content="GoogLeNet学习 概论 在2014年的ImageNet挑战赛(ILSVRC14)上，GoogLeNetz和VGGNet成为了当年的双雄。GoogLeNet获得了图片分类大赛的第一名，VGGNet紧随其后。这两种模型的共同特点是网络深度更深。VGGNet;是基于LeNetz和AlexNet的一些框架结构，GoogLeNet则采用了更加大胆的网络结构。尽管GoogLeNet仅有22层，它的尺寸比AlexNet和VGGNet要小得多。\nGoogLeNet的参数数量为500万个，而AlexNet的参数数量是GoogLeNet的12倍，VGGNet的参数数量又是AlexNet的3倍。因此，当内存或计算资源有限时，GoogLeNet是更好的选择。从模型结果来看，GoogLeNet的性能表现更加优越。GoogLeNet是谷歌公司研究出来的深度网络结构，命名为GoogLeNet而不是GoogleNet的原因据说是为了向LeNet致敬。\n研发动机 一般来说，提升网络性能最直接的办法就是增加网络深度和宽度，或者输入数据的大小；但这种方式存在以下问题：\n参数太多：如果训练数据集有限，参数太多很容易产生过拟合。 难以应用：网络越大、参数越多，计算复杂度越大，导致应用问题。 难以优化模型：网络越深，越容易出现梯度弥散问题（梯度越往后越容易消失）难以进行模型优化。 原理学习 Inception结构 待完成学习&hellip;&hellip;\n">
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:published_time' content='2026-01-15T13:52:23&#43;08:00'/><meta property='article:modified_time' content='2026-01-15T13:52:23&#43;08:00'/>
+<meta name="twitter:title" content="CS336-大模型概述与tokenization">
+<meta name="twitter:description" content="Overview and Tokenization Overview 一个很直接的问题：研究者与底层的技术正在越来越脱节。八年前，学者会补充并训练他们自己的模型，六年前还会下载一个模型再 fine-tune，而现在学者们只会向闭源模型（GPT-4/Claude/Gemini）提问。当然这是一个比较夸张的说法，但现在确实随着模型能力的提升，很多基础的工作不再需要研究者去深究了。Full understanding of this technology is necessary for fundamental research.\n通过这个课程能学到:\nMechanics: how things work (什么是 Transformer, 模型如何并行使用 GPU) Mindset: 最大化利用硬件的显存，scaling laws！ Intuitions: 什么样的 data 和 modeling decisions 会有更好的结果 还特别强调了该课程最核心的理念：maximize efficiency! 也就是在给定你的数据和特定 GPU 的情况下，什么是能够训练出来的最好的模型。\n正式课程从模型的整体发展历史开始，讲了下不同关键时间点模型的变化情况，其中在讲到开源的时候，第一次看到了对开源的不同的定义，感觉还挺有意思的，他把开源分了两种类型，一种叫 Open-weight models（比如 DeepSeek），另一种叫 Open-source models（比如 OLMo），前者公开模型权重，架构细节，但只提供部分训练细节，没有数据细节；而后者基本全部都公开，但也没有提供训练过程的失败案例。\nTokenization LLM 需要把概率分布置于 token 序列（通常用整数索引表示），所以我们需要将初始文本的字符串 encode 成 token，又需要将 token decode 回字符串，这时候就需要有 Tokenizer 来完成这些事情。\n视频中的分词器网站如下：Tiktokenizer\n然后讲了几个 Tokenization 的不同方法，并介绍了目前主流的大家都在用的。\nCharacter-based tokenization：每个 character 被转换成一个 code point（整数），这样对每种语言的处理都很方便，但问题是 vocabulary 太大，有些 character 不常用，这样转换效率不高； Byte-based tokenization：转换成字节序列，可以把表征范围限制在 0-255，问题是有些 character 会被转换为 \\xf0\\x9f\\x8c\\x8d，序列太长，而 transformer 的上下文长度是有限的； Word-based tokenization：将字符串分割成单词，然后将这些分割的结果映射成整数，但问题词表可能变得巨大，包含很多不常见的词汇，voc abulary 的大小不确定； Byte Pair Encoding (BPE)。在 BPE 之前普遍用 word-base，之后从 GPT-2 开始使用 BPE。基本思想是在原始的文本上训练 tokenizer，自动确定 vocabulary，也就是常见的 vocabulary 用单一的 token 表示，很少出现的 vocabulary 用多个 token 表示。\n">
     </head>
     <body class="
     article-page
@@ -242,13 +242,8 @@
         <div class="widget--toc">
             <nav id="TableOfContents">
   <ol>
-    <li><a href="#概论">概论</a></li>
-    <li><a href="#研发动机">研发动机</a></li>
-    <li><a href="#原理学习">原理学习</a>
-      <ol>
-        <li><a href="#inception结构">Inception结构</a></li>
-      </ol>
-    </li>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#tokenization">Tokenization</a></li>
   </ol>
 </nav>
         </div>
@@ -268,7 +263,7 @@
 
     <div class="article-title-wrapper">
         <h2 class="article-title">
-            <a href="/p/googlenet%E5%AD%A6%E4%B9%A0/">GoogLeNet学习</a>
+            <a href="/p/cs336-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E6%A6%82%E8%BF%B0%E4%B8%8Etokenization/">CS336-大模型概述与tokenization</a>
         </h2>
     
         
@@ -290,7 +285,7 @@
   <path d="M3 11h16" />
   <path d="M18 16.496v1.504l1 1" />
 </svg>
-                <time class="article-time--published">Dec 21, 2025</time>
+                <time class="article-time--published">Jan 15, 2026</time>
             </div>
         
 
@@ -320,31 +315,24 @@
     <section class="article-content">
     
     
-    <h1 id="googlenet学习">GoogLeNet学习
-</h1><h2 id="概论">概论
-</h2><p>在2014年的ImageNet挑战赛(ILSVRC14)上，GoogLeNetz和VGGNet成为了当年的双雄。GoogLeNet获得了图片分类大赛的第一名，VGGNet紧随其后。这两种模型的共同特点是网络深度更深。VGGNet;是基于LeNetz和AlexNet的一些框架结构，GoogLeNet则采用了更加大胆的网络结构。尽管GoogLeNet仅有22层，它的尺寸比AlexNet和VGGNet要小得多。</p>
-<p>GoogLeNet的参数数量为500万个，而AlexNet的参数数量是GoogLeNet的12倍，VGGNet的参数数量又是AlexNet的3倍。因此，当内存或计算资源有限时，GoogLeNet是更好的选择。从模型结果来看，GoogLeNet的性能表现更加优越。GoogLeNet是谷歌公司研究出来的深度网络结构，命名为GoogLeNet而不是GoogleNet的原因据说是为了向LeNet致敬。</p>
-<h2 id="研发动机">研发动机
-</h2><p>一般来说，提升网络性能最直接的办法就是增加网络深度和宽度，或者输入数据的大小；但这种方式存在以下问题：</p>
-<ul>
-<li>参数太多：如果训练数据集有限，参数太多很容易产生过拟合。</li>
-<li>难以应用：网络越大、参数越多，计算复杂度越大，导致应用问题。</li>
-<li>难以优化模型：网络越深，越容易出现梯度弥散问题（梯度越往后越容易消失）难以进行模型优化。</li>
-</ul>
-<h2 id="原理学习">原理学习
-</h2><h3 id="inception结构">Inception结构
-</h3><p><img src="/images/7.png"
-	
-	
-	
-	loading="lazy"
-	
-		alt="7"
-	
-	
-></p>
-<hr>
-<p><strong>待完成学习&hellip;&hellip;</strong></p>
+    <h1 id="overview-and-tokenization">Overview and Tokenization
+</h1><h2 id="overview">Overview
+</h2><p>一个很直接的问题：研究者与底层的技术正在越来越脱节。八年前，学者会补充并训练他们自己的模型，六年前还会下载一个模型再 fine-tune，而现在学者们只会向闭源模型（GPT-4/Claude/Gemini）提问。当然这是一个比较夸张的说法，但现在确实随着模型能力的提升，很多基础的工作不再需要研究者去深究了。Full understanding of this technology is necessary for fundamental research.</p>
+<p>通过这个课程能学到:</p>
+<p>Mechanics: how things work (什么是 Transformer, 模型如何并行使用 GPU)
+Mindset: 最大化利用硬件的显存，scaling laws！
+Intuitions: 什么样的 data 和 modeling decisions 会有更好的结果
+还特别强调了该课程最核心的理念：maximize efficiency! 也就是在给定你的数据和特定 GPU 的情况下，什么是能够训练出来的最好的模型。</p>
+<p>正式课程从模型的整体发展历史开始，讲了下不同关键时间点模型的变化情况，其中在讲到开源的时候，第一次看到了对开源的不同的定义，感觉还挺有意思的，他把开源分了两种类型，一种叫 Open-weight models（比如 DeepSeek），另一种叫 Open-source models（比如 OLMo），前者公开模型权重，架构细节，但只提供部分训练细节，没有数据细节；而后者基本全部都公开，但也没有提供训练过程的失败案例。</p>
+<h2 id="tokenization">Tokenization
+</h2><p>LLM 需要把概率分布置于 token 序列（通常用整数索引表示），所以我们需要将初始文本的字符串 encode 成 token，又需要将 token decode 回字符串，这时候就需要有 Tokenizer 来完成这些事情。</p>
+<p>视频中的分词器网站如下：<a class="link" href="https://tiktokenizer.vercel.app/?encoder=gpt2"  target="_blank" rel="noopener"
+    >Tiktokenizer</a></p>
+<p>然后讲了几个 Tokenization 的不同方法，并介绍了目前主流的大家都在用的。</p>
+<p>Character-based tokenization：每个 character 被转换成一个 code point（整数），这样对每种语言的处理都很方便，但问题是 vocabulary 太大，有些 character 不常用，这样转换效率不高；
+Byte-based tokenization：转换成字节序列，可以把表征范围限制在 0-255，问题是有些 character 会被转换为 \xf0\x9f\x8c\x8d，序列太长，而 transformer 的上下文长度是有限的；
+Word-based tokenization：将字符串分割成单词，然后将这些分割的结果映射成整数，但问题词表可能变得巨大，包含很多不常见的词汇，voc abulary 的大小不确定；
+Byte Pair Encoding (BPE)。在 BPE 之前普遍用 word-base，之后从 GPT-2 开始使用 BPE。基本思想是在原始的文本上训练 tokenizer，自动确定 vocabulary，也就是常见的 vocabulary 用单一的 token 表示，很少出现的 vocabulary 用多个 token 表示。</p>
 
 </section>
 

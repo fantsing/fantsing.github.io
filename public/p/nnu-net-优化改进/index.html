@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
     <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset='utf-8'>
-<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="GoogLeNet学习 概论 在2014年的ImageNet挑战赛(ILSVRC14)上，GoogLeNetz和VGGNet成为了当年的双雄。GoogLeNet获得了图片分类大赛的第一名，VGGNet紧随其后。这两种模型的共同特点是网络深度更深。VGGNet;是基于LeNetz和AlexNet的一些框架结构，GoogLeNet则采用了更加大胆的网络结构。尽管GoogLeNet仅有22层，它的尺寸比AlexNet和VGGNet要小得多。\nGoogLeNet的参数数量为500万个，而AlexNet的参数数量是GoogLeNet的12倍，VGGNet的参数数量又是AlexNet的3倍。因此，当内存或计算资源有限时，GoogLeNet是更好的选择。从模型结果来看，GoogLeNet的性能表现更加优越。GoogLeNet是谷歌公司研究出来的深度网络结构，命名为GoogLeNet而不是GoogleNet的原因据说是为了向LeNet致敬。\n研发动机 一般来说，提升网络性能最直接的办法就是增加网络深度和宽度，或者输入数据的大小；但这种方式存在以下问题：\n参数太多：如果训练数据集有限，参数太多很容易产生过拟合。 难以应用：网络越大、参数越多，计算复杂度越大，导致应用问题。 难以优化模型：网络越深，越容易出现梯度弥散问题（梯度越往后越容易消失）难以进行模型优化。 原理学习 Inception结构 待完成学习&hellip;&hellip;\n">
-<title>GoogLeNet学习</title>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="填不完坑了，怎么这么多博客没写！！！！！\n以下为口头叙述，待完善博客撰写！！！！！！\nnnU-Net 虽然强，但它是纯卷积的，看东西&rsquo;视野&rsquo;比较窄。胰腺肿瘤太小了，需要结合整个腹部的上下文才能分得准，所以我决定引入最近很火的Mamba架构，因为它能用低显存实现全局感受野。\n我没有照搬现有的U-Mamba，而是设计了一个&rsquo;双向混合模块&rsquo;。 这里的灵感主要有两点： 第一，医学图像不像文本，没有先后顺序，必须前后双向看，所以我把Mamba 做成了双向的。 第二，Mamba 容易忽略细节，所以我给它并联了一个卷积分支，专门抓肿瘤的边缘纹理。\n效果非常超出预期。 虽然现在只跑了300 多个Epoch（总共要跑1000），但肿瘤的Dice 已经冲到了50.7%。 要知道这个数据集的SOTA（最好成绩）也就55% 左右。我们才跑了三分之一的进度就快追平SOTA 了，这说明我的&rsquo;卷积+Mamba&rsquo;混合策略是非常对路的。\n第一部分：\n关于纯 ViT 的尝试 (Task004) 最开始，我尝试过直接用 Vision Transformer 替换 nnU-Net 的 Backbone，并在 Task004 (海马体) 数据集上做了测试。\n但结果并不理想，Dice 分数只有 77% 左右（通常 CNN 能达到 85%-90%）。\n经过分析主要原因有两点：\n第一，ViT 缺乏归纳偏置。它把图像看作序列，对局部纹理不敏感，而医学图像（尤其是海马体这种小结构）非常依赖边界的精确度。\n第二，ViT 是数据饥渴型的。Task004 数据量太小，导致 Transformer 还没学好全局关系就已经过拟合了。所以纯 ViT 在这种小样本医学任务上不合适。”\n关于小样本自监督的尝试 后来为了解决数据依赖问题，尝试引入小样本自监督学习 (Few-Shot Self-Supervised)。\n但在实验中发现，这种方法引入了极其复杂的预训练流程，而且训练极其不稳定，很难收敛。考虑到我们要在有限算力和时间内产出稳定的改进，我认为这个方向的性价比太低，所以及时止损，暂停了这个方向。\n第二部分：为什么转向Task007 与Mamba？\n为什么最终选择 Task007 (胰腺)？ 吸取了之前的教训，意识到需要一个既需要全局上下文，又有极高难度的任务来验证新架构。\nTask004 太简单且太依赖局部，而 Task007 (胰腺及肿瘤) 是公认的数据集刷榜的：\n背景干扰大： 胰腺形状极不规则，位置多变。\n类别极不平衡： 胰腺肿瘤在图像里可能只占几十个像素。\n这正是验证长距离建模能力的最佳场景。”\n">
+<title>nnU-Net-优化改进</title>
 
-<link rel='canonical' href='http://localhost:1313/p/googlenet%E5%AD%A6%E4%B9%A0/'>
+<link rel='canonical' href='http://localhost:1313/p/nnu-net-%E4%BC%98%E5%8C%96%E6%94%B9%E8%BF%9B/'>
 
-<link rel="stylesheet" href="/scss/style.min.6a692fd055deae459f2a9767f57f3855ba80cafd5041317f24f7360f6ca47cdf.css"><meta property='og:title' content="GoogLeNet学习">
-<meta property='og:description' content="GoogLeNet学习 概论 在2014年的ImageNet挑战赛(ILSVRC14)上，GoogLeNetz和VGGNet成为了当年的双雄。GoogLeNet获得了图片分类大赛的第一名，VGGNet紧随其后。这两种模型的共同特点是网络深度更深。VGGNet;是基于LeNetz和AlexNet的一些框架结构，GoogLeNet则采用了更加大胆的网络结构。尽管GoogLeNet仅有22层，它的尺寸比AlexNet和VGGNet要小得多。\nGoogLeNet的参数数量为500万个，而AlexNet的参数数量是GoogLeNet的12倍，VGGNet的参数数量又是AlexNet的3倍。因此，当内存或计算资源有限时，GoogLeNet是更好的选择。从模型结果来看，GoogLeNet的性能表现更加优越。GoogLeNet是谷歌公司研究出来的深度网络结构，命名为GoogLeNet而不是GoogleNet的原因据说是为了向LeNet致敬。\n研发动机 一般来说，提升网络性能最直接的办法就是增加网络深度和宽度，或者输入数据的大小；但这种方式存在以下问题：\n参数太多：如果训练数据集有限，参数太多很容易产生过拟合。 难以应用：网络越大、参数越多，计算复杂度越大，导致应用问题。 难以优化模型：网络越深，越容易出现梯度弥散问题（梯度越往后越容易消失）难以进行模型优化。 原理学习 Inception结构 待完成学习&hellip;&hellip;\n">
-<meta property='og:url' content='http://localhost:1313/p/googlenet%E5%AD%A6%E4%B9%A0/'>
+<link rel="stylesheet" href="/scss/style.min.6a692fd055deae459f2a9767f57f3855ba80cafd5041317f24f7360f6ca47cdf.css"><meta property='og:title' content="nnU-Net-优化改进">
+<meta property='og:description' content="填不完坑了，怎么这么多博客没写！！！！！\n以下为口头叙述，待完善博客撰写！！！！！！\nnnU-Net 虽然强，但它是纯卷积的，看东西&rsquo;视野&rsquo;比较窄。胰腺肿瘤太小了，需要结合整个腹部的上下文才能分得准，所以我决定引入最近很火的Mamba架构，因为它能用低显存实现全局感受野。\n我没有照搬现有的U-Mamba，而是设计了一个&rsquo;双向混合模块&rsquo;。 这里的灵感主要有两点： 第一，医学图像不像文本，没有先后顺序，必须前后双向看，所以我把Mamba 做成了双向的。 第二，Mamba 容易忽略细节，所以我给它并联了一个卷积分支，专门抓肿瘤的边缘纹理。\n效果非常超出预期。 虽然现在只跑了300 多个Epoch（总共要跑1000），但肿瘤的Dice 已经冲到了50.7%。 要知道这个数据集的SOTA（最好成绩）也就55% 左右。我们才跑了三分之一的进度就快追平SOTA 了，这说明我的&rsquo;卷积+Mamba&rsquo;混合策略是非常对路的。\n第一部分：\n关于纯 ViT 的尝试 (Task004) 最开始，我尝试过直接用 Vision Transformer 替换 nnU-Net 的 Backbone，并在 Task004 (海马体) 数据集上做了测试。\n但结果并不理想，Dice 分数只有 77% 左右（通常 CNN 能达到 85%-90%）。\n经过分析主要原因有两点：\n第一，ViT 缺乏归纳偏置。它把图像看作序列，对局部纹理不敏感，而医学图像（尤其是海马体这种小结构）非常依赖边界的精确度。\n第二，ViT 是数据饥渴型的。Task004 数据量太小，导致 Transformer 还没学好全局关系就已经过拟合了。所以纯 ViT 在这种小样本医学任务上不合适。”\n关于小样本自监督的尝试 后来为了解决数据依赖问题，尝试引入小样本自监督学习 (Few-Shot Self-Supervised)。\n但在实验中发现，这种方法引入了极其复杂的预训练流程，而且训练极其不稳定，很难收敛。考虑到我们要在有限算力和时间内产出稳定的改进，我认为这个方向的性价比太低，所以及时止损，暂停了这个方向。\n第二部分：为什么转向Task007 与Mamba？\n为什么最终选择 Task007 (胰腺)？ 吸取了之前的教训，意识到需要一个既需要全局上下文，又有极高难度的任务来验证新架构。\nTask004 太简单且太依赖局部，而 Task007 (胰腺及肿瘤) 是公认的数据集刷榜的：\n背景干扰大： 胰腺形状极不规则，位置多变。\n类别极不平衡： 胰腺肿瘤在图像里可能只占几十个像素。\n这正是验证长距离建模能力的最佳场景。”\n">
+<meta property='og:url' content='http://localhost:1313/p/nnu-net-%E4%BC%98%E5%8C%96%E6%94%B9%E8%BF%9B/'>
 <meta property='og:site_name' content='Lee Sivan&#39;s Blog'>
 <meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:published_time' content='2025-12-21T13:40:43&#43;08:00'/><meta property='article:modified_time' content='2025-12-21T13:40:43&#43;08:00'/>
-<meta name="twitter:title" content="GoogLeNet学习">
-<meta name="twitter:description" content="GoogLeNet学习 概论 在2014年的ImageNet挑战赛(ILSVRC14)上，GoogLeNetz和VGGNet成为了当年的双雄。GoogLeNet获得了图片分类大赛的第一名，VGGNet紧随其后。这两种模型的共同特点是网络深度更深。VGGNet;是基于LeNetz和AlexNet的一些框架结构，GoogLeNet则采用了更加大胆的网络结构。尽管GoogLeNet仅有22层，它的尺寸比AlexNet和VGGNet要小得多。\nGoogLeNet的参数数量为500万个，而AlexNet的参数数量是GoogLeNet的12倍，VGGNet的参数数量又是AlexNet的3倍。因此，当内存或计算资源有限时，GoogLeNet是更好的选择。从模型结果来看，GoogLeNet的性能表现更加优越。GoogLeNet是谷歌公司研究出来的深度网络结构，命名为GoogLeNet而不是GoogleNet的原因据说是为了向LeNet致敬。\n研发动机 一般来说，提升网络性能最直接的办法就是增加网络深度和宽度，或者输入数据的大小；但这种方式存在以下问题：\n参数太多：如果训练数据集有限，参数太多很容易产生过拟合。 难以应用：网络越大、参数越多，计算复杂度越大，导致应用问题。 难以优化模型：网络越深，越容易出现梯度弥散问题（梯度越往后越容易消失）难以进行模型优化。 原理学习 Inception结构 待完成学习&hellip;&hellip;\n">
+<meta name="twitter:title" content="nnU-Net-优化改进">
+<meta name="twitter:description" content="填不完坑了，怎么这么多博客没写！！！！！\n以下为口头叙述，待完善博客撰写！！！！！！\nnnU-Net 虽然强，但它是纯卷积的，看东西&rsquo;视野&rsquo;比较窄。胰腺肿瘤太小了，需要结合整个腹部的上下文才能分得准，所以我决定引入最近很火的Mamba架构，因为它能用低显存实现全局感受野。\n我没有照搬现有的U-Mamba，而是设计了一个&rsquo;双向混合模块&rsquo;。 这里的灵感主要有两点： 第一，医学图像不像文本，没有先后顺序，必须前后双向看，所以我把Mamba 做成了双向的。 第二，Mamba 容易忽略细节，所以我给它并联了一个卷积分支，专门抓肿瘤的边缘纹理。\n效果非常超出预期。 虽然现在只跑了300 多个Epoch（总共要跑1000），但肿瘤的Dice 已经冲到了50.7%。 要知道这个数据集的SOTA（最好成绩）也就55% 左右。我们才跑了三分之一的进度就快追平SOTA 了，这说明我的&rsquo;卷积+Mamba&rsquo;混合策略是非常对路的。\n第一部分：\n关于纯 ViT 的尝试 (Task004) 最开始，我尝试过直接用 Vision Transformer 替换 nnU-Net 的 Backbone，并在 Task004 (海马体) 数据集上做了测试。\n但结果并不理想，Dice 分数只有 77% 左右（通常 CNN 能达到 85%-90%）。\n经过分析主要原因有两点：\n第一，ViT 缺乏归纳偏置。它把图像看作序列，对局部纹理不敏感，而医学图像（尤其是海马体这种小结构）非常依赖边界的精确度。\n第二，ViT 是数据饥渴型的。Task004 数据量太小，导致 Transformer 还没学好全局关系就已经过拟合了。所以纯 ViT 在这种小样本医学任务上不合适。”\n关于小样本自监督的尝试 后来为了解决数据依赖问题，尝试引入小样本自监督学习 (Few-Shot Self-Supervised)。\n但在实验中发现，这种方法引入了极其复杂的预训练流程，而且训练极其不稳定，很难收敛。考虑到我们要在有限算力和时间内产出稳定的改进，我认为这个方向的性价比太低，所以及时止损，暂停了这个方向。\n第二部分：为什么转向Task007 与Mamba？\n为什么最终选择 Task007 (胰腺)？ 吸取了之前的教训，意识到需要一个既需要全局上下文，又有极高难度的任务来验证新架构。\nTask004 太简单且太依赖局部，而 Task007 (胰腺及肿瘤) 是公认的数据集刷榜的：\n背景干扰大： 胰腺形状极不规则，位置多变。\n类别极不平衡： 胰腺肿瘤在图像里可能只占几十个像素。\n这正是验证长距离建模能力的最佳场景。”\n">
     </head>
     <body class="
     article-page
@@ -220,44 +220,7 @@
     </ol>
 </aside>
 
-    <aside class="sidebar right-sidebar sticky">
-        
-            
-                
-    <section class="widget archives">
-        <div class="widget-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-  <path stroke="none" d="M0 0h24v24H0z"/>
-  <line x1="5" y1="9" x2="19" y2="9" />
-  <line x1="5" y1="15" x2="19" y2="15" />
-  <line x1="11" y1="4" x2="7" y2="20" />
-  <line x1="17" y1="4" x2="13" y2="20" />
-</svg>
-
-
-
-        </div>
-        <h2 class="widget-title section-title">Table of contents</h2>
-        
-        <div class="widget--toc">
-            <nav id="TableOfContents">
-  <ol>
-    <li><a href="#概论">概论</a></li>
-    <li><a href="#研发动机">研发动机</a></li>
-    <li><a href="#原理学习">原理学习</a>
-      <ol>
-        <li><a href="#inception结构">Inception结构</a></li>
-      </ol>
-    </li>
-  </ol>
-</nav>
-        </div>
-    </section>
-
-            
-        
-    </aside>
-
+    
 
             <main class="main full-width">
     <article class="main-article">
@@ -268,7 +231,7 @@
 
     <div class="article-title-wrapper">
         <h2 class="article-title">
-            <a href="/p/googlenet%E5%AD%A6%E4%B9%A0/">GoogLeNet学习</a>
+            <a href="/p/nnu-net-%E4%BC%98%E5%8C%96%E6%94%B9%E8%BF%9B/">nnU-Net-优化改进</a>
         </h2>
     
         
@@ -320,31 +283,50 @@
     <section class="article-content">
     
     
-    <h1 id="googlenet学习">GoogLeNet学习
-</h1><h2 id="概论">概论
-</h2><p>在2014年的ImageNet挑战赛(ILSVRC14)上，GoogLeNetz和VGGNet成为了当年的双雄。GoogLeNet获得了图片分类大赛的第一名，VGGNet紧随其后。这两种模型的共同特点是网络深度更深。VGGNet;是基于LeNetz和AlexNet的一些框架结构，GoogLeNet则采用了更加大胆的网络结构。尽管GoogLeNet仅有22层，它的尺寸比AlexNet和VGGNet要小得多。</p>
-<p>GoogLeNet的参数数量为500万个，而AlexNet的参数数量是GoogLeNet的12倍，VGGNet的参数数量又是AlexNet的3倍。因此，当内存或计算资源有限时，GoogLeNet是更好的选择。从模型结果来看，GoogLeNet的性能表现更加优越。GoogLeNet是谷歌公司研究出来的深度网络结构，命名为GoogLeNet而不是GoogleNet的原因据说是为了向LeNet致敬。</p>
-<h2 id="研发动机">研发动机
-</h2><p>一般来说，提升网络性能最直接的办法就是增加网络深度和宽度，或者输入数据的大小；但这种方式存在以下问题：</p>
-<ul>
-<li>参数太多：如果训练数据集有限，参数太多很容易产生过拟合。</li>
-<li>难以应用：网络越大、参数越多，计算复杂度越大，导致应用问题。</li>
-<li>难以优化模型：网络越深，越容易出现梯度弥散问题（梯度越往后越容易消失）难以进行模型优化。</li>
-</ul>
-<h2 id="原理学习">原理学习
-</h2><h3 id="inception结构">Inception结构
-</h3><p><img src="/images/7.png"
-	
-	
-	
-	loading="lazy"
-	
-		alt="7"
-	
-	
-></p>
+    <p>填不完坑了，怎么这么多博客没写！！！！！</p>
 <hr>
-<p><strong>待完成学习&hellip;&hellip;</strong></p>
+<p>以下为口头叙述，待完善博客撰写！！！！！！</p>
+<p>nnU-Net 虽然强，但它是纯卷积的，看东西&rsquo;视野&rsquo;比较窄。胰腺肿瘤太小了，需要结合整个腹部的上下文才能分得准，所以我决定引入最近很火的Mamba架构，因为它能用低显存实现全局感受野。</p>
+<p>我没有照搬现有的U-Mamba，而是设计了一个&rsquo;双向混合模块&rsquo;。 这里的灵感主要有两点： 第一，医学图像不像文本，没有先后顺序，必须前后双向看，所以我把Mamba 做成了双向的。 第二，Mamba 容易忽略细节，所以我给它并联了一个卷积分支，专门抓肿瘤的边缘纹理。</p>
+<p>效果非常超出预期。 虽然现在只跑了300 多个Epoch（总共要跑1000），但肿瘤的Dice 已经冲到了50.7%。 要知道这个数据集的SOTA（最好成绩）也就55% 左右。我们才跑了三分之一的进度就快追平SOTA 了，这说明我的&rsquo;卷积+Mamba&rsquo;混合策略是非常对路的。</p>
+<p>第一部分：</p>
+<ol>
+<li>关于纯 ViT 的尝试 (Task004)</li>
+</ol>
+<p>最开始，我尝试过直接用 Vision Transformer 替换 nnU-Net 的 Backbone，并在 Task004 (海马体) 数据集上做了测试。</p>
+<p>但结果并不理想，Dice 分数只有 77% 左右（通常 CNN 能达到 85%-90%）。</p>
+<p>经过分析主要原因有两点：</p>
+<p>第一，ViT 缺乏归纳偏置。它把图像看作序列，对局部纹理不敏感，而医学图像（尤其是海马体这种小结构）非常依赖边界的精确度。</p>
+<p>第二，ViT 是数据饥渴型的。Task004 数据量太小，导致 Transformer 还没学好全局关系就已经过拟合了。所以纯 ViT 在这种小样本医学任务上不合适。”</p>
+<ol start="2">
+<li>关于小样本自监督的尝试</li>
+</ol>
+<p>后来为了解决数据依赖问题，尝试引入小样本自监督学习 (Few-Shot Self-Supervised)。</p>
+<p>但在实验中发现，这种方法引入了极其复杂的预训练流程，而且训练极其不稳定，很难收敛。考虑到我们要在有限算力和时间内产出稳定的改进，我认为这个方向的性价比太低，所以及时止损，暂停了这个方向。</p>
+<p>第二部分：为什么转向Task007 与Mamba？</p>
+<ol>
+<li>为什么最终选择 Task007 (胰腺)？</li>
+</ol>
+<p>吸取了之前的教训，意识到需要一个既需要全局上下文，又有极高难度的任务来验证新架构。</p>
+<p>Task004 太简单且太依赖局部，而 Task007 (胰腺及肿瘤) 是公认的数据集刷榜的：</p>
+<p>背景干扰大： 胰腺形状极不规则，位置多变。</p>
+<p>类别极不平衡： 胰腺肿瘤在图像里可能只占几十个像素。</p>
+<p>这正是验证长距离建模能力的最佳场景。”</p>
+<ol start="2">
+<li>为什么选择 Bi-Hybrid Mamba？</li>
+</ol>
+<p>针对 Task007 的问题，我设计了 双向混合 Mamba 架构。</p>
+<p>这是为了解决之前 ViT 的问题：我们既要 Transformer 那样的全局视野，又要 CNN 的局部精度。</p>
+<p>双向设计： 解决了医学图像没有时间顺序的问题，前后像素都能参考。</p>
+<p>混合卷积： 我特意保留了一个卷积分支，专门用来抓肿瘤的边缘。</p>
+<p>目前的实验数据非常有说服力。现在跑到了 300 多个 Epoch（总共1000）：</p>
+<p>胰腺 Dice 到了 70.1%，稳步上升。</p>
+<p>最难的肿瘤Dice 已经冲到了50.7%。</p>
+<p>这个方法在 007 上的核心优势在于：</p>
+<p>相比于基线 nnU-Net，我的模型在极小病灶（肿瘤）的识别上展现出了惊人的爆发力。</p>
+<p>肿瘤分割精度就已经逼近了 SOTA 的基线水平（约 52%-55%）。这证明了 Mamba 带来的全局上下文信息，让模型在复杂的腹部背景中，也能精准地定位到微小的肿瘤，这是传统 CNN 很难做到的。</p>
+<p>第一，Mamba 原本是处理文本的，只能单向阅读。但 CT 图像是 3D 的，后面的像素对前面的判断也很重要。所以我设计了双向扫描，，能同时参考上下文，解决了空间信息丢失的问题。</p>
+<p>第二，Mamba 擅长看大概轮廓，但容易把边缘磨平。而胰腺肿瘤的边缘非常模糊且不规则。所以我特意旁路并联了一个卷积层。利用卷积对纹理的高敏感性，专门用来抠肿瘤的边缘细节。</p>
 
 </section>
 

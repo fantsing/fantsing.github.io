@@ -7,7 +7,1643 @@
         <generator>Hugo -- gohugo.io</generator>
         <language>en</language>
         <copyright>Lee Sivan</copyright>
-        <lastBuildDate>Sat, 20 Dec 2025 13:40:43 +0800</lastBuildDate><atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" /><item>
+        <lastBuildDate>Fri, 30 Jan 2026 13:40:43 +0800</lastBuildDate><atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" /><item>
+        <title>FNO-学习</title>
+        <link>http://localhost:1313/p/fno-%E5%AD%A6%E4%B9%A0/</link>
+        <pubDate>Fri, 30 Jan 2026 13:40:43 +0800</pubDate>
+        
+        <guid>http://localhost:1313/p/fno-%E5%AD%A6%E4%B9%A0/</guid>
+        <description>&lt;h2 id=&#34;reference&#34;&gt;Reference
+&lt;/h2&gt;&lt;p&gt;&lt;strong&gt;博客&lt;/strong&gt;：&lt;/p&gt;
+&lt;p&gt;&lt;a class=&#34;link&#34; href=&#34;https://zhuanlan.zhihu.com/p/520487599&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;(5 封私信 / 2 条消息) AI与PDE（四）：FNO与算子学习的范式 - 知乎&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a class=&#34;link&#34; href=&#34;https://segmentfault.com/a/1190000041781339&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;人工智能 - FNO：傅里叶算子神经网络 - 深度学习求解偏微分方程 - SegmentFault 思否&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a class=&#34;link&#34; href=&#34;https://czy1101kksk.github.io/sci-paper/ComputationalPhysics/FNO/&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;FNO: Fourier Neural Operator for Parametric Partial Differential Equations - BRIGHT_CZY&amp;rsquo;s site&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a class=&#34;link&#34; href=&#34;https://zhuanlan.zhihu.com/p/643434159&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;(5 封私信) 偏微分方程与机器学习: Fourier neural operator (FNO) 详细解读 - 知乎&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a class=&#34;link&#34; href=&#34;https://blog.csdn.net/yaoyao_chen/article/details/137653035&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;如何理解Fourier Neural Operator (FNO)-CSDN博客&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;视频&lt;/strong&gt;：&lt;/p&gt;
+&lt;p&gt;&lt;a class=&#34;link&#34; href=&#34;https://www.bilibili.com/video/BV1Zs3cz5Eai/?vd_source=1c8d92c874bbc8513666bfff2e44cbcc&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;傅里叶神经算子 Fourier Neural Operator_哔哩哔哩_bilibili&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;论文&lt;/strong&gt;：&lt;/p&gt;
+&lt;p&gt;[&lt;a class=&#34;link&#34; href=&#34;https://arxiv.org/abs/2010.08895&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;2010.08895] Fourier Neural Operator for Parametric Partial Differential Equations&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;[&lt;a class=&#34;link&#34; href=&#34;https://arxiv.org/abs/2111.05512&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;2111.05512] A comprehensive and fair comparison of two neural operators (with practical extensions) based on FAIR data&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;[&lt;a class=&#34;link&#34; href=&#34;https://arxiv.org/abs/2003.03485&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;2003.03485] Neural Operator: Graph Kernel Network for Partial Differential Equations&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;算子&#34;&gt;算子
+&lt;/h2&gt;&lt;p&gt;算子学习可以看做一种学习图像到图像映射的问题，傅里叶神经算子中的傅里叶层可以看作卷积层的替代。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;函数类比图像，图像（本质是数组、张量）可以看作离散化的2d函数，反过来，函数可以看做高维图像。&lt;/li&gt;
+&lt;li&gt;算子（函数-函数映射）类比图像-图像映射，算子学习可借鉴图像处理领域的CNN网络结构&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;算子将一个函数映射到另一个函数，如：&lt;/p&gt;
+\[(Fg)(x) = \int f(x,y)g(y)dy\]\[(f * g)(x) = \int f(x - y)g(y)dy\]&lt;p&gt;神经算子通过神经网络学习/逼近函数映射，训练完毕的神经网络就是神经算子&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;fno的切入场景与优点&#34;&gt;&lt;strong&gt;FNO的切入场景与优点&lt;/strong&gt;
+&lt;/h2&gt;&lt;p&gt;求解PDE时，PDE中往往有初始条件、系数函数、源函数/驱动函数等等&lt;strong&gt;可变的参数函数&lt;/strong&gt;，例如以下3个PDE案例：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;一维Burgers方程&lt;/li&gt;
+&lt;/ol&gt;
+$$
+\begin{align*}
+\partial_t u(x,t) + \partial_x \big(u^2(x,t)/2\big) &amp;= \nu \partial_{xx} u(x,t), \quad &amp;x \in (0,1),\; t \in (0,1] \\
+u(x,0) &amp;= u_0(x), \quad &amp;x \in (0,1)
+\end{align*}
+$$&lt;ul&gt;
+&lt;li&gt;说明：初始条件 \(u_0(x)\) 是可变的参数函数。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;二维Darcy Flow方程（稳态解）&lt;/li&gt;
+&lt;/ol&gt;
+$$
+\begin{align*}
+-\nabla \cdot \big(a(x)\nabla u(x)\big) &amp;= f(x), \quad &amp;x \in (0,1)^2 \\
+u(x) &amp;= 0, \quad &amp;x \in \partial(0,1)^2
+\end{align*}
+$$&lt;ul&gt;
+&lt;li&gt;说明：扩散系数函数 \(a(x)\) 和外力函数 \(f(x)\) 都是可变的参数函数。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;ol start=&#34;3&#34;&gt;
+&lt;li&gt;二维Navier-Stokes方程（不可压缩流演化）&lt;/li&gt;
+&lt;/ol&gt;
+$$
+\begin{align*}
+\partial_t w(x,t) + u(x,t) \cdot \nabla w(x,t) &amp;= \nu \Delta w(x,t) + f(x), \quad &amp;x \in (0,1)^2,\; t \in (0,T] \\
+\nabla \cdot u(x,t) &amp;= 0, \quad &amp;x \in (0,1)^2,\; t \in [0,T] \\
+w(x,0) &amp;= w_0(x), \quad &amp;x \in (0,1)^2
+\end{align*}
+$$&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;说明：对于含时PDE，前期的方程解作为输入（参数函数），预测后期解的时间演化。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;FNO根据PDE的参数函数预测PDE的解，学习两个无穷维函数空间之间的映射关系，能求解一族PDE。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;求解PDE只是FNO的作用之一，它也能用于超分辨、逆问题等场景，求解PDE是设计FNO的切入点。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;通过引入傅里叶变换（fft&amp;amp;ifft），FNO能够更快速（1000x）、更准确地求解PDE。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;FNO与具体的离散化方式无关，误差也与分辨率无关，天然适合超分辨应用。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;概述&#34;&gt;概述
+&lt;/h2&gt;&lt;p&gt;FNO的核心是学习函数到函数的映射，首先定义输入、输出函数空间：&lt;/p&gt;
+$$
+\begin{align*}
+A &amp;= A(D; \mathbb{R}^{d_a}) \\
+U &amp;= U(D; \mathbb{R}^{d_u})
+\end{align*}
+$$$$
+G^\dagger: A \to U
+$$&lt;hr&gt;
+&lt;p&gt;符号说明&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;\(D\) 代表函数定义域，\(D \subset \mathbb{R}^d\)，是 \(d\) 维实向量空间的有界开子集（一个“规则盒子”）。&lt;strong&gt;注意&lt;/strong&gt;：FNO的输入与输出定义域相同。&lt;/li&gt;
+&lt;li&gt;函数空间 \(A\)：每个元素代表一个函数，定义域为 \(D\)，取值为 \(d_a\) 维实空间 \(\mathbb{R}^{d_a}\) 中的元素。&lt;/li&gt;
+&lt;li&gt;函数空间 \(U\)：每个元素代表一个函数，定义域为 \(D\)，取值为 \(d_u\) 维实空间 \(\mathbb{R}^{d_u}\) 中的元素。&lt;/li&gt;
+&lt;li&gt;\(A\) 是FNO的输入函数空间，代表PDE的可变参数函数（如初始条件、系数函数、源函数等）。&lt;/li&gt;
+&lt;li&gt;\(U\) 是FNO的输出函数空间，代表PDE的解。&lt;/li&gt;
+&lt;li&gt;\(G^\dagger\) 是函数空间 \(A \to U\) 之间的映射，通常是复杂的非线性映射。FNO的目标就是从数据中学习到这个映射 \(G^\dagger\)。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;p&gt;数据集为 \(N\) 个函数对：
+&lt;/p&gt;
+$$
+\{a_j, u_j\}_{j=1}^N
+$$&lt;ul&gt;
+&lt;li&gt;\(a_j \in A\)：从函数空间 \(A\) 中，根据概率测度 \(\mu\) 采样得到。&lt;/li&gt;
+&lt;li&gt;\(u_j = G^\dagger(a_j)\)：是函数空间 \(U\) 中的函数，可能带有噪声与误差。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;p&gt;训练过程&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;构建参数化算子&lt;/strong&gt;：\(G_\theta: A \to U\)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;定义代价函数&lt;/strong&gt;：\(Cost(*, *)\) 用于比较预测输出函数 \(G_\theta(a_j)\) 与目标函数 \(u_j\) 的偏差。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;损失函数定义&lt;/strong&gt;：数据集的平均偏差
+$$
+Loss = \mathbb{E}_{a \sim \mu}\left[Cost\big(G_\theta(a), G^\dagger(a)\big)\right] \approx \frac{1}{N} \sum_{j=1}^N Cost\big(G_\theta(a_j), u_j\big)
+$$&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;训练目标&lt;/strong&gt;：找到使Loss最小的参数 \(\theta\)
+$$
+\min_\theta \mathbb{E}_{a \sim \mu}\left[Cost\big(G_\theta(a), G^\dagger(a)\big)\right]
+$$&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;p&gt;&lt;strong&gt;NOTE：虽然理论分析是在无穷维函数空间中进行的，但在实际神经网络实现时，是用有限维空间来近似的。&lt;/strong&gt;&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;函数离散化表征&#34;&gt;函数离散化表征
+&lt;/h2&gt;&lt;p&gt;在具体实现中，每一对数据 \((a_j, u_j)\) 都是定义在 \(D\) 中的两个函数。神经网络无法直接处理连续函数，因此需要用函数的&lt;strong&gt;离散点阵&lt;/strong&gt;来表征该函数。例如，用 \(n\) 个离散样本点来表示 \(a_j\)：&lt;/p&gt;
+$$
+\{(x_1, a_j(x_1)), (x_2, a_j(x_2)), \dots, (x_n, a_j(x_n))\}
+$$&lt;hr&gt;
+&lt;p&gt;核心要点&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;\(D_j = \{x_1, x_2, \dots, x_n\}\) 是定义域 \(D\) 中的 \(n\) 个样本点，\(a_j(x_1), a_j(x_2), \dots, a_j(x_n)\) 是 \(\mathbb{R}^{d_a}\) 中的 \(d_a\) 维向量。&lt;/li&gt;
+&lt;li&gt;一般 \(x_1, x_2, \dots, x_n\) 的选择是固定不变的，我们用 \(a_j\) 的 \(n\) 个函数值 \(a_j(x_1), \dots, a_j(x_n)\) 来表征 \(a_j\)，并将其排列为 \(n \times d_a\) 的矩阵（或高维张量，取决于定义域的维度），记作：
+$$
+a_j|_{D_j} \in \mathbb{R}^{n \times d_a}
+$$&lt;/li&gt;
+&lt;li&gt;同理，表征 \(u_j\) 用：
+$$
+u_j|_{D_j} \in \mathbb{R}^{n \times d_u}
+$$&lt;/li&gt;
+&lt;li&gt;输入与输出函数在相同的定义域中，使用&lt;strong&gt;同一套样本点&lt;/strong&gt;来表征。&lt;/li&gt;
+&lt;li&gt;关键特性：虽然FNO的输入输出都是离散化的矩阵/张量，但FNO与具体的离散化方式无关（即 discretization invariant），它可以输出任意一点 \(x \in D\) 的值 \(u_j(x)\)，而不仅仅是 \(D_j\) 离散格点上的值。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h3 id=&#34;fno-网络结构与计算流程&#34;&gt;FNO 网络结构与计算流程
+&lt;/h3&gt;&lt;p&gt;&lt;img src=&#34;http://localhost:1313/images/55.png&#34;
+	
+	
+	
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;55&#34;
+	
+	
+&gt;&lt;/p&gt;
+&lt;p&gt;FNO的输入是代表函数 \(a(x)\) 的 \(n\) 个 \(d_a\) 维样本向量，即一个 \(n \times d_a\) 的矩阵，其计算流程分为以下几个阶段：&lt;/p&gt;
+&lt;hr&gt;
+&lt;ol&gt;
+&lt;li&gt;输入升维（Encoder）&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;首先，输入经过一个局部变换 \(P\)：
+&lt;/p&gt;
+$$
+v_0(x) = P(a(x))
+$$&lt;ul&gt;
+&lt;li&gt;\(P: \mathbb{R}^{d_a} \to \mathbb{R}^{d_v}\) 是一个浅层全连接神经网络，它将每个 \(d_a\) 维的样本向量提升为 \(d_v\) 维的特征向量，是一个升维过程，可看作 &lt;strong&gt;Encoder&lt;/strong&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;多层Fourier Layer迭代&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;FNO采用迭代架构，将多层Fourier Layer串联，逐步提取特征向量（类似CNN）。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;每个 \(v_j(x)\) 是和 \(a(x)\) 定义域相同（都是 \(D\)）、采样点相同的函数，用 \(n \times d_v\) 矩阵表示：\(v_j(x) \in \mathbb{R}^{n \times d_v}\)。&lt;/li&gt;
+&lt;li&gt;特征变换序列：\(v_0(x) \to v_1(x) \to \dots \to v_T(x)\)。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;在每个Fourier Layer内部，&lt;strong&gt;核积分算子（Kernel Integral Operator）&lt;/strong&gt; \(K_\phi(a)\) 与线性变换 \(W: \mathbb{R}^{d_v} \to \mathbb{R}^{d_v}\) 并联，结果相加后再经过非线性激活函数 \(\sigma\)：
+&lt;/p&gt;
+$$
+v_{t+1}(x) = \sigma\big(W v_t(x) + \big(K_\phi(a) v_t\big)(x)\big)
+$$&lt;hr&gt;
+&lt;ol start=&#34;3&#34;&gt;
+&lt;li&gt;输出降维（Decoder）&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;最后，通过一个局部变换 \(Q\)（作用类似 \(P\)），将最终特征映射为输出函数 \(u(x) \in \mathbb{R}^{n \times d_u}\)：
+&lt;/p&gt;
+$$
+u(x) = Q(v_T(x))
+$$&lt;ul&gt;
+&lt;li&gt;\(Q: \mathbb{R}^{d_v} \to \mathbb{R}^{d_u}\) 是一个降维投影过程，可看作 &lt;strong&gt;Decoder&lt;/strong&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;核积分算子&#34;&gt;核积分算子
+&lt;/h2&gt;&lt;p&gt;核积分算子 \(K_\phi(a)\) 是Fourier Neural Operator的核心模块，它接收一个函数并输出一个新函数。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;一般形式&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;核积分算子的定义为：
+&lt;/p&gt;
+$$
+\big(K_\phi(a) v_t\big)(x) = \int_D \kappa_\phi\big(x, y, a(x), a(y)\big) v_t(y) dy
+$$&lt;ul&gt;
+&lt;li&gt;其中 \(x, y \in \mathbb{R}^d\)，输入函数 \(a(x), a(y) \in \mathbb{R}^{d_a}\)，特征向量 \(v_t(x) \in \mathbb{R}^{d_v}\)。&lt;/li&gt;
+&lt;li&gt;输出函数 \(\big(K_\phi(a) v_t\big)(x) \in \mathbb{R}^{d_v}\)，因此核函数 \(\kappa_\phi\) 本质是一个 \(d_v \times d_v\) 的矩阵，算子可记为：
+$$
+K_\phi: \mathbb{R}^{2(d+d_a)} \to \mathbb{R}^{d_v \times d_v}
+$$&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;施加约束得到卷积算子&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;为了简化计算并引入傅里叶变换，我们对核函数施加两个关键约束：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;不依赖输入函数：\(\kappa_\phi\big(x, y, a(x), a(y)\big) = \kappa_\phi(x, y)\)&lt;/li&gt;
+&lt;li&gt;平移不变性：\(\kappa_\phi(x, y) = \kappa_\phi(x - y)\)&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;在这两个约束下，核积分算子退化为卷积算子：
+&lt;/p&gt;
+$$
+\big(K_\phi(a) v_t\big)(x) = \int_D \kappa_\phi(x - y) v_t(y) dy = (\kappa_\phi * v_t)(x)
+$$&lt;hr&gt;
+&lt;ol start=&#34;3&#34;&gt;
+&lt;li&gt;施加约束的合理性&lt;/li&gt;
+&lt;/ol&gt;
+&lt;ul&gt;
+&lt;li&gt;不依赖输入函数 \(a(x)\)：实验表明，即使让核函数依赖 \(a(x)\)，模型性能也没有显著提升，反而会增加计算复杂度。&lt;/li&gt;
+&lt;li&gt;空间平移不变性：
+&lt;ul&gt;
+&lt;li&gt;许多具有物理背景的PDE满足平移不变性，这源于物理规律的伽利略相对性原理。&lt;/li&gt;
+&lt;li&gt;卷积操作（如CNN）已在多个领域证明其有效性，能有效提取平移不变的特征。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;fno核心用傅里叶变换计算卷积&#34;&gt;FNO核心：用傅里叶变换计算卷积
+&lt;/h2&gt;&lt;ol&gt;
+&lt;li&gt;卷积的傅里叶变换性质&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;根据卷积定理，两个函数卷积的傅里叶变换等于它们各自傅里叶变换的乘积：
+&lt;/p&gt;
+$$
+\mathcal{F}\big[(\kappa_\phi * v_t)(x)\big] = \mathcal{F}\big[\kappa_\phi(x)\big] \times \mathcal{F}\big[v_t(x)\big]
+$$&lt;p&gt;
+逆变换形式为：
+&lt;/p&gt;
+$$
+(\kappa_\phi * v_t)(x) = \mathcal{F}^{-1}\big(\mathcal{F}\big[\kappa_\phi(x)\big] \times \mathcal{F}\big[v_t(x)\big]\big),\; \forall x \in D
+$$&lt;hr&gt;
+&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;周期函数假设与频域核&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;假设核函数 \(\kappa_\phi(x)\) 是周期函数（在定义域 \(D\) 外做周期延拓），记其傅里叶变换为：
+&lt;/p&gt;
+$$
+\mathcal{F}\big[\kappa_\phi(x)\big] = R_\phi
+$$&lt;p&gt;
+则卷积可简化为：
+&lt;/p&gt;
+$$
+(\kappa_\phi * v_t)(x) = \mathcal{F}^{-1}\big(R_\phi \times \mathcal{F}\big[v_t\big]\big)(x)
+$$&lt;ul&gt;
+&lt;li&gt;我们不直接构建参数化的空间域核 \(\kappa_\phi\)，而是直接在频域中构建参数化的卷积核 \(R_\phi\)（乘法核）。&lt;/li&gt;
+&lt;li&gt;算子 \(\mathcal{F}^{-1}\big(R_\phi \times \mathcal{F}[\cdot]\big)\) 被称为傅里叶积分算子。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;ol start=&#34;3&#34;&gt;
+&lt;li&gt;
+&lt;p&gt;频域计算的优势&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;简化映射学习：复杂的微分方程在频域中可能转化为简单的代数方程，模型更容易学习函数之间的映射关系。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;计算效率极高：通过 &lt;code&gt;FFT → 频域乘法 → IFFT&lt;/code&gt; 的流程，可将卷积计算的时间复杂度从 \(O(n^2)\) 降至 \(O(n \log n)\)，大幅加速计算。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;傅里叶变换的实现&#34;&gt;傅里叶变换的实现
+&lt;/h2&gt;&lt;p&gt;输入 \(v_t(x)\) 是定义在 \(d\) 维向量 \(x \in \mathbb{R}^d\) 上的函数，输出为 \(d_v\) 维向量 \(v_t(x) \in \mathbb{R}^{d_v}\)。
+计算 \(\mathcal{F}[v_t(x)]\) 时，需要对 \(v_t(x)\) 的每个分量（共 \(d_v\) 个）分别做高维（\(d\) 维）傅里叶变换。&lt;/p&gt;
+&lt;hr&gt;
+&lt;ol&gt;
+&lt;li&gt;函数拆分&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;首先，将 \(v_t(x)\) 拆分为 \(d_v\) 个标量函数 \(f_l(x_1, x_2, \dots, x_d)\)（\(l=1,2,\dots,d_v\)）：
+&lt;/p&gt;
+$$
+v_t(x) = \begin{pmatrix}
+f_1(x_1, x_2, \dots, x_d) \\
+f_2(x_1, x_2, \dots, x_d) \\
+\vdots \\
+f_{d_v}(x_1, x_2, \dots, x_d)
+\end{pmatrix}
+$$&lt;hr&gt;
+&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;连续傅里叶变换&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;对每个标量函数 \(f_l(x)\) 进行 \(d\) 维傅里叶变换：
+&lt;/p&gt;
+$$
+(\mathcal{F} f)_l(k_1, k_2, \dots, k_d) = \int_D f_l(x_1, x_2, \dots, x_d) \exp\left(-2i\pi \left(k_1 x_1 + k_2 x_2 + \dots + k_d x_d\right)\right) dx_1 dx_2 \dots dx_d
+$$&lt;hr&gt;
+&lt;ol start=&#34;3&#34;&gt;
+&lt;li&gt;离散傅里叶变换（FFT）&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;实际运算中使用FFT计算离散傅里叶变换，要求输入维度做均匀离散化。
+假设在 \(d\) 个维度上分别有 \(s_1, s_2, \dots, s_d\) 个均匀离散点，总离散点数为 \(n = s_1 \times s_2 \times \dots \times s_d\)。&lt;/p&gt;
+&lt;p&gt;离散傅里叶变换公式为：
+&lt;/p&gt;
+$$
+(\mathcal{F} f)_l(k_1, k_2, \dots, k_d) = \sum_{x_1=0}^{s_1-1} \sum_{x_2=0}^{s_2-1} \dots \sum_{x_d=0}^{s_d-1} f_l(x_1, x_2, \dots, x_d) e^{-2i\pi \frac{x_1 k_1}{s_1}} e^{-2i\pi \frac{x_2 k_2}{s_2}} \dots e^{-2i\pi \frac{x_d k_d}{s_d}}
+$$&lt;hr&gt;
+&lt;ol start=&#34;4&#34;&gt;
+&lt;li&gt;张量形式与实现要点&lt;/li&gt;
+&lt;/ol&gt;
+&lt;ul&gt;
+&lt;li&gt;若 \(f_l(x)\) 用长度为 \(n\) 的向量表示，在做FFT前（例如用 &lt;code&gt;pytorch.fft.fftn&lt;/code&gt;），需要将其变形为 \(s_1 \times s_2 \times \dots \times s_d\) 的张量。&lt;/li&gt;
+&lt;li&gt;变换后的 \(f_l(k)\) 是相同形状的张量，所有 \(d_v\) 个 \(f_l(k)\) 组合成一个 \(s_1 \times s_2 \times \dots \times s_d \times d_v \times 1\) 的复数张量。&lt;/li&gt;
+&lt;li&gt;同理，核函数 \(\kappa_\phi(x)\) 可拆分为 \(d_v \times d_v\) 个标量函数，其傅里叶变换 \(R_\phi = \mathcal{F}[\kappa_\phi(x)]\) 是一个 \(s_1 \times s_2 \times \dots \times s_d \times d_v \times d_v\) 的复数张量。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;频域截断与离散化不变性discretization-invariant&#34;&gt;频域截断与离散化不变性（Discretization Invariant）
+&lt;/h2&gt;&lt;p&gt;如果不做处理，频域核 \(R_\phi\) 是一个 \(s_1 \times s_2 \times \dots \times s_d \times d_v \times d_v\) 的复数张量，其形状会随离散化点数 \(s_1, s_2, \dots, s_d\) 变化，这违背了FNO“模型与离散化方式无关”的设计目标。我们希望无论 \(s_1, s_2, \dots, s_d\) 如何取值，\(R_\phi\) 的形状都保持不变。&lt;/p&gt;
+&lt;hr&gt;
+&lt;ol&gt;
+&lt;li&gt;频率分量的映射关系&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;假设维度 \(j\) 上的均匀采样间隔为 \(\Delta_j\)，采样频率为 \(f_s = 1/\Delta_j\)。根据奈奎斯特采样定理，离散采样只能覆盖频率范围 \([-f_s/2, f_s/2]\)。
+当离散索引 \(k_j\) 从 \(0 \sim s_j-1\) 取值时，它对应的实际频率为：
+&lt;/p&gt;
+$$
+freq =
+\begin{cases}
+\displaystyle \frac{k_j}{s_j} f_s &amp;\text{若 } \frac{k_j}{s_j} \le \frac{1}{2} \\
+\displaystyle \left(\frac{k_j}{s_j} - 1\right) f_s &amp;\text{若 } \frac{k_j}{s_j} &gt; \frac{1}{2}
+\end{cases}
+$$&lt;hr&gt;
+&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;频域截断的实现&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;用 \(k_{max,j}\) 表示维度 \(j\) 上的截断频率，即只保留 \(k_j \le k_{max,j}\) 或 \(s_j - k_j \le k_{max,j}\) 的频率分量，大于 \(k_{max,j}\) 的频率分量将被丢弃。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;有效频率位置：被保留的有效 \(k_j\) 都位于 \(s_1 \times s_2 \times \dots \times s_d\) 张量的“角上”。&lt;/li&gt;
+&lt;li&gt;截断后张量形状：每个维度 \(j\) 有 \(2 \cdot k_{max,j} + 1\) 种取值，因此截断后的 \(R_\phi\) 是一个：
+$$
+  (2k_{max,1}+1) \times (2k_{max,2}+1) \times \dots \times (2k_{max,d}+1) \times d_v \times d_v
+  $$
+的张量。&lt;/li&gt;
+&lt;li&gt;共轭对称性：由于实函数频谱的共轭对称性，\(R_\phi\) 只有一半是独立参数，另一半是其复共轭。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;ol start=&#34;3&#34;&gt;
+&lt;li&gt;离散化不变性的保证&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;频域截断保证了FNO的离散化不变性：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;截断后能表示的频率范围是：
+$$
+  \left[-\frac{k_{max,j}}{s_j \Delta_j},\; \frac{k_{max,j}}{s_j \Delta_j}\right]
+  $$&lt;/li&gt;
+&lt;li&gt;频域分辨率为 \(1/(s_j \Delta_j)\)。&lt;/li&gt;
+&lt;li&gt;因为 \(s_j \Delta_j\) 是常数（等于定义域 \(D\) 在该维度的长度，定义域必须是规则的），所以可表示的频率范围和频域分辨率与具体的离散化方式无关。&lt;/li&gt;
+&lt;li&gt;这一特性让FNO可以用低分辨率数据训练，然后零样本（zero-shot）迁移到高分辨率的离散化网格中。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;fno计算流程补充与逆傅里叶变换&#34;&gt;FNO计算流程补充与逆傅里叶变换
+&lt;/h2&gt;&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;周期函数假设
+之前假设核函数 \(\kappa_\phi(x)\) 是周期函数（满足周期边界条件），因此 \(1/(s_j \Delta_j)\) 恰好是傅里叶级数展开的基频。
+\(R_\phi\) 是对 \(\kappa_\phi(x)\) 离散频谱的低频截断。即使 \(\kappa_\phi\) 不是周期函数，从 \(R_\phi\) 的离散频谱信息也只能恢复出一个近似 \(\kappa_\phi\) 的周期延拓函数。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;计算复杂度
+FNO的核心计算流程为 &lt;code&gt;FFT → 频域乘法 → IFFT&lt;/code&gt;，主要计算量集中在FFT和IFFT上，时间复杂度为 \(O(n \log n)\)，这也是FNO计算效率高的主要原因。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;张量操作细节
+实际计算时，截断后的 \(R_\phi\) 需要通过补零（padding）和变形（reshape），变回 \(s_1 \times s_2 \times \dots \times s_d \times d_v \times d_v\) 的张量，才能与 \(\mathcal{F}[v_t(x)]\)（形状为 \(s_1 \times s_2 \times \dots \times s_d \times d_v \times 1\)）进行批量矩阵乘法。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;p&gt;&lt;strong&gt;逆傅里叶变换&lt;/strong&gt;：&lt;/p&gt;
+&lt;p&gt;离散逆傅里叶变换的公式为：
+&lt;/p&gt;
+$$
+(\mathcal{F}^{-1} f)_l(x_1, x_2, \dots, x_d) = \sum_{x_1=0}^{s_1-1} \sum_{x_2=0}^{s_2-1} \dots \sum_{x_d=0}^{s_d-1} f_l(k_1, k_2, \dots, k_d) e^{2i\pi \frac{x_1 k_1}{s_1}} e^{2i\pi \frac{x_2 k_2}{s_2}} \dots e^{2i\pi \frac{x_d k_d}{s_d}}
+$$&lt;p&gt;
+这一步将频域的计算结果转换回空间域，得到最终的特征向量更新。&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;fno-关键特性与超参数&#34;&gt;FNO 关键特性与超参数
+&lt;/h2&gt;&lt;ol&gt;
+&lt;li&gt;表达能力保障&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;虽然卷积核的频域表示 \(R_\phi\) 截断了高频成分，并对 \(\kappa_\phi\) 施加了周期边界假设，但这并不影响FNO的整体表达能力。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;因为 Fourier Layer 中的线性变换 \(W\)，以及首尾的升维/降维模块 \(P\)、\(Q\)，可以帮助模型恢复高频成分和非周期特性。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;离散化不变性的来源&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;离散网格的大小、数量会影响FFT/IFFT操作和频域离散表示（如频域网格的数目），但不会影响频域网格大小和频域分辨率。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;核心原因：截断操作固定了我们关心的频域网格的数目，使得FFT+截断的频域表示与离散化方式彻底无关。&lt;/li&gt;
+&lt;li&gt;频域空间中学到的参数 \(R_\phi\) 代表傅里叶级数的线性组合系数，本质上是连续的，因此 \(R_\phi\) 与 \(\kappa_\phi\) 是连续的映射关系。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;ol start=&#34;3&#34;&gt;
+&lt;li&gt;零样本超分辨率&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;得益于离散化不变性，FNO可以：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;用低分辨率网格进行训练&lt;/li&gt;
+&lt;li&gt;用高分辨率网格进行推理&lt;/li&gt;
+&lt;li&gt;这种能力被称为 zero-shot super-resolution，让FNO非常适合超分辨重建任务。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;ol start=&#34;4&#34;&gt;
+&lt;li&gt;论文中的典型超参数&lt;/li&gt;
+&lt;/ol&gt;
+&lt;ul&gt;
+&lt;li&gt;网络结构：4层 Fourier Layer&lt;/li&gt;
+&lt;li&gt;激活函数：ReLU&lt;/li&gt;
+&lt;li&gt;优化器：Adam&lt;/li&gt;
+&lt;li&gt;特征维度：\(d_v\) 取 64 或 32&lt;/li&gt;
+&lt;li&gt;截断频率：\(k_{max,j}\) 取 16 或 12&lt;/li&gt;
+&lt;li&gt;输入维度：\(d\) 一般不超过 3 维&lt;/li&gt;
+&lt;li&gt;硬件需求：仅需单块 16GB V100 显卡即可完成实验&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;补充一fno-的研究动机&#34;&gt;补充一：FNO 的研究动机
+&lt;/h2&gt;&lt;ol&gt;
+&lt;li&gt;传统 PDE 求解的分辨率问题&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;传统 PDE 数值方法（有限差分 / 有限元 / 谱方法）本质上都是在离散空间中求解连续方程，不可避免地存在分辨率权衡问题：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;低分辨率网格：计算快，但数值误差大&lt;/li&gt;
+&lt;li&gt;高分辨率网格：精度高，但计算成本极高（时间 + 硬件）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;本质在于：精度的提升依赖于离散自由度的指数级增长&lt;/p&gt;
+&lt;p&gt;这使得传统方法在：多参数 PDE；多次重复求解；实时预测等场景中成本难以接受。&lt;/p&gt;
+&lt;h2 id=&#34;ai-for-pde-的核心目标更快更准或同时更快且更准&#34;&gt;AI for PDE 的核心目标：更快；更准；或同时更快且更准
+&lt;/h2&gt;&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;FNO 的定位&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;FNO 论文将现有方法大致分为三类：&lt;/p&gt;
+&lt;p&gt;（1）Finite-dimensional Operators（有限维算子）&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;输入 / 输出：固定分辨率的欧几里得空间张量
+例如：
+$$
+  \mathbb{R}^{64\times64} \rightarrow \mathbb{R}^{256\times256}
+  $$&lt;/li&gt;
+&lt;li&gt;本质：学习一个特定分辨率下的映射&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;特点：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;对特定任务效果好&lt;/li&gt;
+&lt;li&gt;强依赖网格分辨率&lt;/li&gt;
+&lt;li&gt;更换分辨率 / 初边界条件通常需要重新训练&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;p&gt;（2）Neural-FEM / PINNs&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;用神经网络参数化 某一个具体 PDE 解&lt;/li&gt;
+&lt;li&gt;训练过程 ≈ 求解过程&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;特点：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;物理一致性强&lt;/li&gt;
+&lt;li&gt;训练成本高、难收敛&lt;/li&gt;
+&lt;li&gt;一旦参数 / 初始条件改变 → 需要重新训练&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;p&gt;（3）Neural Operators（FNO 所属）&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;直接学习：
+$$
+  a \mapsto u
+  $$
+其中 \(a\) 是 PDE 的参数函数（初值 / 系数 / 强迫项等）&lt;/li&gt;
+&lt;li&gt;一次训练，多次推理&lt;/li&gt;
+&lt;li&gt;目标：学习一族 PDE 的解算子&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;补充二-从-pde-到积分算子&#34;&gt;补充二： 从 PDE 到积分算子
+&lt;/h2&gt;&lt;ol&gt;
+&lt;li&gt;PDE 解算子视角&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;考虑一个带参数的 PDE：
+&lt;/p&gt;
+$$
+\mathcal{L}_a u = f
+$$&lt;p&gt;
+其解可以写成一个算子形式：
+&lt;/p&gt;
+$$
+u = G_a(f)
+$$&lt;p&gt;
+这里：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;\(a\)：参数（可能是函数）&lt;/li&gt;
+&lt;li&gt;\(G_a\)：对应参数下的解算子&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;算子学习的目标是学习-而不是只学某一个&#34;&gt;算子学习的目标是：学习 \(a \mapsto G_a\)，而不是只学某一个 \(u\)
+&lt;/h2&gt;&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;格林函数启发&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;对于线性 PDE，解可以通过格林函数表示：
+&lt;/p&gt;
+$$
+u(x) = \int_D G(x,y) f(y) dy
+$$&lt;p&gt;
+直观理解：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;\(u(x)\) 由定义域中所有点 \(y\) 共同决定&lt;/li&gt;
+&lt;li&gt;影响强度由核函数 \(G(x,y)\) 决定&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;PDE 解天然是全局积分算子的结果，而不是局部算子&lt;/p&gt;
+&lt;p&gt;这正是 CNN（局部卷积）在 PDE 中受限的原因之一。&lt;/p&gt;
+&lt;hr&gt;
+&lt;ol start=&#34;3&#34;&gt;
+&lt;li&gt;非线性 PDE 与可迭代算子网络&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;虽然格林函数严格成立于线性 PDE，但可以通过：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;多层积分算子&lt;/li&gt;
+&lt;li&gt;非线性激活函数&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;构造如下的可迭代算子网络：
+&lt;/p&gt;
+$$
+v_{t+1}(x) = \sigma\left(
+W v_t(x) + \int_D \kappa(x,y) v_t(y) dy
+\right)
+$$&lt;ul&gt;
+&lt;li&gt;下标 \(t\) 表示网络层数（非时间）&lt;/li&gt;
+&lt;li&gt;类似 ResNet 的残差结构&lt;/li&gt;
+&lt;li&gt;非线性由 \(\sigma\) 提供&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;补充三为什么是-fourier-operator&#34;&gt;补充三：为什么是 Fourier Operator
+&lt;/h2&gt;&lt;ol&gt;
+&lt;li&gt;Fourier Filter 是全局的&lt;/li&gt;
+&lt;/ol&gt;
+&lt;ul&gt;
+&lt;li&gt;CNN 卷积核 → 局部感受野&lt;/li&gt;
+&lt;li&gt;Fourier 模态 → 全局基函数&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;PDE 解的特征往往是：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;长程依赖&lt;/li&gt;
+&lt;li&gt;全局结构（如能量传输、守恒量）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;与谱方法的内在联系&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;传统谱方法：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;在傅里叶空间中求解 PDE&lt;/li&gt;
+&lt;li&gt;与离散网格弱相关&lt;/li&gt;
+&lt;li&gt;高精度但难处理复杂几何&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;FNO 的思想可以理解为：&lt;/p&gt;
+&lt;p&gt;在傅里叶空间中，用神经网络学习谱方法中未知的部分&lt;/p&gt;
+&lt;p&gt;这也是 FNO 能做到：准线性复杂度；分辨率不变性；超分辨推理的根本原因。&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;补充四fno-的实际任务设计&#34;&gt;补充四：FNO 的实际任务设计
+&lt;/h2&gt;&lt;ol&gt;
+&lt;li&gt;Burgers 方程&lt;/li&gt;
+&lt;/ol&gt;
+$$
+u_0(x) \rightarrow u(x, t=1)
+$$&lt;ul&gt;
+&lt;li&gt;输入：初始条件函数&lt;/li&gt;
+&lt;li&gt;输出：固定时间的解&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;Darcy Flo&lt;/li&gt;
+&lt;/ol&gt;
+$$
+a(x) \rightarrow u(x)
+$$&lt;ul&gt;
+&lt;li&gt;输入：空间变化的扩散系数&lt;/li&gt;
+&lt;li&gt;输出：稳态解&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;ol start=&#34;3&#34;&gt;
+&lt;li&gt;Navier–Stokes&lt;/li&gt;
+&lt;/ol&gt;
+$$
+\{w(t)\}_{t=0}^{10} \rightarrow \{w(t)\}_{t&gt;10}
+$$&lt;ul&gt;
+&lt;li&gt;输入：一段时间序列&lt;/li&gt;
+&lt;li&gt;输出：未来演化&lt;/li&gt;
+&lt;li&gt;同时验证不同粘性系数下的泛化能力&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;本质是算子在时间维度上的外推能力。&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;补充五fno-的工程意义与发展方向&#34;&gt;补充五：FNO 的工程意义与发展方向
+&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;准线性复杂度：\(O(n \log n)\)&lt;/li&gt;
+&lt;li&gt;单卡即可训练 toy 问题&lt;/li&gt;
+&lt;li&gt;已被 NVIDIA 扩展至：
+&lt;ul&gt;
+&lt;li&gt;AFNO&lt;/li&gt;
+&lt;li&gt;全球天气预报&lt;/li&gt;
+&lt;li&gt;超大规模 GPU 集群&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;这说明 FNO：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;不是纯理论模型&lt;/li&gt;
+&lt;li&gt;是目前最接近可工业化的算子学习方法&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;补充六fno-的方法谱系与复杂度动机&#34;&gt;补充六：FNO 的方法谱系与复杂度动机
+&lt;/h2&gt;&lt;p&gt;Fourier Neural Operator 并非直接从傅里叶变换出发设计，而是 Neural Operator 框架在工程可行性约束下的产物。&lt;/p&gt;
+&lt;p&gt;最一般的 Neural Operator 可写为带核的积分算子，其结构等价于定义在空间点集上的全连接图神经网络，计算复杂度为：
+&lt;/p&gt;
+$$
+O(K^2)
+$$&lt;p&gt;
+在高分辨率 PDE 场景中，这种复杂度是不可接受的。&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;为降低复杂度，Z. Li 等人在早期工作中依次引入了以下优化：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;邻域限制（局部图）&lt;/li&gt;
+&lt;li&gt;多极展开（降低远程交互成本）&lt;/li&gt;
+&lt;li&gt;平移不变性与输入无关核假设&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;在进一步假设核函数仅依赖于相对位移 \(x-y\) 后，积分算子退化为卷积算子，从而可以通过傅里叶变换在频域中高效计算。此时，核函数在频域中的表示 \(R_\phi\) 成为模型的主要可学习参数。&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;因此，FNO 可以被视为：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Graph Kernel Neural Operator 在平移不变假设下、以 Fourier 模态为基的高效实现形式&lt;/p&gt;&lt;/blockquote&gt;
+&lt;p&gt;这一设计在牺牲部分表达能力的同时，换取了准线性复杂度、分辨率不变性以及良好的工程可扩展性。&lt;/p&gt;
+&lt;hr&gt;
+</description>
+        </item>
+        <item>
+        <title>RAG与Agent开发</title>
+        <link>http://localhost:1313/p/rag%E4%B8%8Eagent%E5%BC%80%E5%8F%91/</link>
+        <pubDate>Sat, 24 Jan 2026 13:40:43 +0800</pubDate>
+        
+        <guid>http://localhost:1313/p/rag%E4%B8%8Eagent%E5%BC%80%E5%8F%91/</guid>
+        <description>&lt;h2 id=&#34;ollama使用&#34;&gt;Ollama使用
+&lt;/h2&gt;&lt;h3 id=&#34;ollama部署&#34;&gt;Ollama部署
+&lt;/h3&gt;&lt;p&gt;正常下载运行即可，简单流畅&lt;/p&gt;
+&lt;h3 id=&#34;代码调用ollama的本地模型&#34;&gt;代码调用Ollama的本地模型
+&lt;/h3&gt;&lt;p&gt;把&lt;code&gt;base_url&lt;/code&gt;改为&lt;code&gt;http://localhost:11434/v1&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;把&lt;code&gt;model&lt;/code&gt;改为对应的本地模型名称，如：qwen3:4b&lt;/p&gt;
+&lt;h2 id=&#34;openai库&#34;&gt;OpenAI库
+&lt;/h2&gt;&lt;h3 id=&#34;openai库基本使用&#34;&gt;OpenAI库基本使用
+&lt;/h3&gt;&lt;p&gt;获取客户端对象：&lt;code&gt;api-key&lt;/code&gt;和&lt;code&gt;base-url&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;调用模型：&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;model&lt;/code&gt;：选用的模型&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;messages&lt;/code&gt;：提供给模型的消息&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;system角色&lt;/code&gt;：人设，幕后导演，影响所有回答&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;assistant角色&lt;/code&gt;：代表AI助手的回答，让AI记得之前说过什么&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;user角色&lt;/code&gt;：代表用户，发送问题、指令或需求&lt;/p&gt;
+&lt;p&gt;处理结果&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;16
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;17
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;18
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;kn&#34;&gt;from&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;openai&lt;/span&gt; &lt;span class=&#34;kn&#34;&gt;import&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;OpenAI&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;#1.获取client对象，OpenAI类对象&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;client&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;OpenAI&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;n&#34;&gt;base_url&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;https://dashscope.aliyuncs.com/compatible-mode/v1&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;#2.调用模型&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;response&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;client&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;chat&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;completions&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;create&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;n&#34;&gt;model&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;qwen3-max&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;n&#34;&gt;messages&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;role&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;system&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;content&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;你是一个python编程专家，并且不说废话，简单回答&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;role&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;assistant&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;content&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;好的，我是编程专家，并且话不多，你要问什么？&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;role&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;user&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;content&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;输出1-10的数字，使用python代码&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;#3.处理结果&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;nb&#34;&gt;print&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;response&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;choices&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;message&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;content&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h3 id=&#34;openai库的流式输出&#34;&gt;OpenAI库的流式输出
+&lt;/h3&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;16
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;17
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;18
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;19
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;20
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;21
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;22
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;23
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;24
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;25
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;kn&#34;&gt;from&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;openai&lt;/span&gt; &lt;span class=&#34;kn&#34;&gt;import&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;OpenAI&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;#1.获取client对象，OpenAI类对象&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;client&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;OpenAI&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;n&#34;&gt;base_url&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;https://dashscope.aliyuncs.com/compatible-mode/v1&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;#2.调用模型&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;response&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;client&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;chat&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;completions&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;create&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;n&#34;&gt;model&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;qwen3-max&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;n&#34;&gt;messages&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;role&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;system&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;content&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;你是一个python编程专家，并且话很多&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;role&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;assistant&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;content&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;好的，我是编程专家，并且话很多，你要问什么？&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;role&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;user&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;content&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;输出1-10的数字，使用python代码&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;p&#34;&gt;],&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;n&#34;&gt;stream&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;kc&#34;&gt;True&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;#3.处理结果&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;#print(response.choices[0].message.content)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;chunk&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;in&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;response&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;nb&#34;&gt;print&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;n&#34;&gt;chunk&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;choices&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;delta&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;content&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;n&#34;&gt;end&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34; &amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;    &lt;span class=&#34;c1&#34;&gt;#每段之间以空格分割&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;n&#34;&gt;flush&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;kc&#34;&gt;True&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h3 id=&#34;openai库附带历史消息调用模型&#34;&gt;OpenAI库附带历史消息调用模型
+&lt;/h3&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;16
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;17
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;18
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;19
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;20
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;21
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;22
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;23
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;24
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;25
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;26
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;27
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;28
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;kn&#34;&gt;from&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;openai&lt;/span&gt; &lt;span class=&#34;kn&#34;&gt;import&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;OpenAI&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;#1.获取client对象，OpenAI类对象&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;client&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;OpenAI&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;n&#34;&gt;base_url&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;https://dashscope.aliyuncs.com/compatible-mode/v1&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;#2.调用模型&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;response&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;client&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;chat&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;completions&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;create&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;n&#34;&gt;model&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;qwen3-max&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;n&#34;&gt;messages&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;role&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;system&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;content&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;你是AI助理，回答很简洁&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;role&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;user&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;content&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;小明有2条宠物狗&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;role&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;assistant&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;content&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;好的&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;role&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;user&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;content&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;小红有3条宠物猫&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;role&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;assistant&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;content&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;好的&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;role&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;user&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;content&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;总共有几只宠物&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;p&#34;&gt;],&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;n&#34;&gt;stream&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;kc&#34;&gt;True&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;#3.处理结果&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;#print(response.choices[0].message.content)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;chunk&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;in&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;response&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;nb&#34;&gt;print&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;n&#34;&gt;chunk&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;choices&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;delta&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;content&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;n&#34;&gt;end&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34; &amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;    &lt;span class=&#34;c1&#34;&gt;#每段之间以空格分割&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;n&#34;&gt;flush&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;kc&#34;&gt;True&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id=&#34;大模型prompt工程&#34;&gt;大模型Prompt工程
+&lt;/h2&gt;&lt;h3 id=&#34;提示词优化基本思想&#34;&gt;提示词优化基本思想
+&lt;/h3&gt;&lt;p&gt;Zero-shot：是指在训练阶段不存在与测试阶段完全相同的类别，但是模型可以使用训练过的知识来推广到测试集中的新类别上。
+在模型训练中，它可以通过已知类别特征来推理识别新类别。例如，模型已知马（四脚兽）、虎（有条纹）、熊猫（黑白色）的特征，在被告知 “斑马是四脚兽、有黑白色的条纹” 后，就能推理识别出斑马。
+在提示词优化中，它是基于模型已有的预训练能力，不提供任何示例，仅通过语言描述任务的要求、目标和约束，让模型直接生成结果，核心是 “用语言定义任务，信任并调用模型的预训练知识”。比如，只通过指令 “请判断‘’包围的用户评论中的情感倾向，输出正面或负面。‘这款代餐鸡胸肉饱腹感很强，吃起来也不柴，很推荐！’”，模型就能完成情感判断。&lt;/p&gt;
+&lt;p&gt;Few-shot：是指模型在学习了一定类别大量数据的基础上，面对新类别时，仅需少量样本就能快速完成学习；当样本数量仅为 1 时，称为 one-shot learning（单样本学习），也属于 Few-shot 的特例。
+在模型训练中，常采用相似度判断的方式。例如，基于少量企鹅样本，通过相似度计算来判断未知图片中是否包含企鹅。
+在提示词优化中，它主要是提供少量示例，让模型参考示例的格式、逻辑来完成任务，以此提升回答的对齐精度。比如，给模型两个提取产品信息的示例后，它就能按相同的 JSON 格式，从新的产品描述中提取出产品名称和核心卖点。&lt;/p&gt;
+&lt;h3 id=&#34;提示词优化案例-金融文本分类任务&#34;&gt;提示词优化案例-金融文本分类任务
+&lt;/h3&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;16
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;17
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;18
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;19
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;20
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;21
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;22
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;23
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;24
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;25
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;26
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;27
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;28
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;29
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;30
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;31
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;32
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;33
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;34
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;35
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;36
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;37
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;38
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;39
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;40
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;41
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;42
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;43
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;44
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;45
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;46
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;47
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;48
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;49
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;50
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;51
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;52
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;kn&#34;&gt;from&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;conda.core.link&lt;/span&gt; &lt;span class=&#34;kn&#34;&gt;import&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;messages&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;kn&#34;&gt;from&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;openai&lt;/span&gt; &lt;span class=&#34;kn&#34;&gt;import&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;OpenAI&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# 1. 获取 client 对象，OpenAI 类对象（DashScope OpenAI 兼容模式）&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;client&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;OpenAI&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;n&#34;&gt;base_url&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;https://dashscope.aliyuncs.com/compatible-mode/v1&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;examples_data&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;  &lt;span class=&#34;c1&#34;&gt;# 示例数据&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;s2&#34;&gt;&amp;#34;新闻报道&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;今日，股市经历了一轮震荡，受到宏观经济数据和全球贸易紧张局势的影响。投资者密切关注美联储可能的政策调整，以适应市场的不确定性。&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;s2&#34;&gt;&amp;#34;财务报告&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;本公司年度财务报告显示，在去年实现了稳步增长的盈利，同时资产负债表呈现强劲的状况。公司还增加了现金储备和管理层的有效战略执行，为未来的持续增长奠定基础。&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;s2&#34;&gt;&amp;#34;公司公告&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;本公司宣布完成最新一轮并购交易，收购了一家在人工智能领域领先的公司。这一战略举措将有助于扩大我们的业务领域，提高市场竞争力。&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;s2&#34;&gt;&amp;#34;分析师报告&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;最新的行业分析报告指出，科技公司的创新将成为未来增长的主要推动力。云计算、人工智能和数字化转型被认为是引领行业发展的关键因素，投资者应关注相关领域的投资机会。&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# 分类列表&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;examples_types&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;新闻报道&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;财务报告&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;公司公告&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;分析师报告&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# 提问数据&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;questions&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;s2&#34;&gt;&amp;#34;今日，央行发布公告宣布降低利率，以刺激经济增长。这一降息举措将影响贷款利率，并在未来几个季度内对金融市场产生影响。&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;s2&#34;&gt;&amp;#34;ABC公司今日发布公告称，已成功完成对XYZ公司股权的收购交易。本次交易是ABC公司在扩大业务范围、加强市场竞争力方面的重要举措。据悉，此次收购将进一步巩固ABC公司的市场地位。&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;s2&#34;&gt;&amp;#34;公司资产负债表显示，公司偿债能力强劲，现金流充足，为未来投资和扩张提供了坚实的财务基础。&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;s2&#34;&gt;&amp;#34;最新的分析报告指出，可再生能源行业预计将在未来几年经历持续增长，投资者应关注这一领域的投资机会。&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;s2&#34;&gt;&amp;#34;小明喜欢小新哟&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;&amp;#34;&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s2&#34;&gt;[
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s2&#34;&gt;    {&amp;#34;role&amp;#34;:&amp;#34;system&amp;#34;,&amp;#34;content&amp;#34;:&amp;#34;你是金融专家，将文本分类为[&amp;#39;新闻报道&amp;#39;,&amp;#39;财务报告&amp;#39;,&amp;#39;公司公告&amp;#39;,&amp;#39;分析师报告&amp;#39;], 不清楚的分类为&amp;#39;不清楚&amp;#39;&amp;#34;},
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s2&#34;&gt;    {&amp;#34;role&amp;#34;:&amp;#34;user&amp;#34;,&amp;#34;content&amp;#34;:&amp;#34;今日，央行发布公告宣布降低......&amp;#34;},
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s2&#34;&gt;    {&amp;#34;role&amp;#34;:&amp;#34;assistant&amp;#34;,&amp;#34;content&amp;#34;:&amp;#34;新闻报道&amp;#34;},
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s2&#34;&gt;    ...
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s2&#34;&gt;]
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;&amp;#34;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;messages&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;role&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;system&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;content&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;你是金融专家，将文本分类为[&amp;#39;新闻报道&amp;#39;,&amp;#39;财务报告&amp;#39;,&amp;#39;公司公告&amp;#39;,&amp;#39;分析师报告&amp;#39;], 不清楚的分类为&amp;#39;不清楚&amp;#39;&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;key&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;value&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;in&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;examples_data&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;items&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;():&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;n&#34;&gt;messages&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;append&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;({&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;role&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;user&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;content&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;value&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;})&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;n&#34;&gt;messages&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;append&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;({&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;role&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;assistant&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;content&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;key&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;})&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# 向模型提问&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;q&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;in&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;questions&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;n&#34;&gt;response&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;client&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;chat&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;completions&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;create&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;n&#34;&gt;model&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;qwen3-max&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;n&#34;&gt;messages&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;messages&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;+&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[{&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;role&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;user&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;content&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;sa&#34;&gt;f&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;按照示例，回答这段文本的分类类别:&lt;/span&gt;&lt;span class=&#34;si&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;q&lt;/span&gt;&lt;span class=&#34;si&#34;&gt;}&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;nb&#34;&gt;print&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;response&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;choices&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;message&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;content&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h3 id=&#34;json数据格式&#34;&gt;Json数据格式
+&lt;/h3&gt;&lt;p&gt;Text文本，非结构化，抽取信息不方便
+CSV（固定分隔符）文本，结构化，抽取信息方便，但是有一定风险
+JSON 是一种带格式的字符串，它的核心作用是方便不同程序之间进行数据交互。&lt;/p&gt;
+&lt;p&gt;在 Python 中，JSON 和常见的数据结构可以直接对应：JSON 对象对应 Python 字典，JSON 数组对应包含多个字典的 Python 列表。&lt;/p&gt;
+&lt;p&gt;使用 Python 的 &lt;code&gt;json&lt;/code&gt; 模块可以轻松实现两者的转换：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;json.dumps(字典或列表, ensure_ascii=False)&lt;/code&gt;：将 Python 数据结构转为 JSON 字符串，&lt;code&gt;ensure_ascii=False&lt;/code&gt; 可以保证中文正常显示。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;json.loads(json字符串)&lt;/code&gt;：将 JSON 字符串转回为 Python 数据结构。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;提示词优化案例-金融词信息抽取&#34;&gt;提示词优化案例-金融词信息抽取
+&lt;/h3&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;16
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;17
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;18
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;19
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;20
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;21
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;22
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;23
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;24
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;25
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;26
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;27
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;28
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;29
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;30
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;31
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;32
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;33
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;34
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;35
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;36
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;37
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;38
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;39
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;40
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;41
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;42
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;43
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;44
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;45
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;46
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;47
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;48
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;49
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;50
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;51
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;52
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;53
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;54
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;55
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;56
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;57
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;58
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;59
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;60
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;kn&#34;&gt;from&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;openai&lt;/span&gt; &lt;span class=&#34;kn&#34;&gt;import&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;OpenAI&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;client&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;OpenAI&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;n&#34;&gt;base_url&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;https://dashscope.aliyuncs.com/compatible-mode/v1&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;c1&#34;&gt;#base_url=&amp;#34;http://localhost:11434/v1&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;examples_data&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;s2&#34;&gt;&amp;#34;是&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;公司ABC发布了季度财报，显示盈利增长。&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;财报披露，公司ABC利润上升。&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;),&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;公司ITCAST发布了年度财报，显示盈利大幅度增长。&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;财报披露，公司ITCAST更赚钱了。&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;p&#34;&gt;],&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;s2&#34;&gt;&amp;#34;不是&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;黄金价格下跌，投资者抛售。&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;外汇市场交易额创下新高。&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;),&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;央行降息，刺激经济增长。&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;新能源技术的创新。&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;questions&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;利率上升，影响房地产市场。&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;高利率对房地产有一定的冲击。&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;),&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;油价大幅度下跌，能源公司面临挑战。&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;未来智能城市的建设趋势越加明显。&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;),&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;股票市场今日大涨，投资者乐观。&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;持续上涨的市场让投资者感到满意。&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;&amp;#34;&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s2&#34;&gt;    {&amp;#34;role&amp;#34;: &amp;#34;system&amp;#34;,      &amp;#34;content&amp;#34;: f&amp;#34;你帮我完成文本匹配，我给你2个句子，被[]包围，你判断它们是否匹配，回答是或不是，请参考如下示例：&amp;#34;},
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s2&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s2&#34;&gt;    {&amp;#34;role&amp;#34;: &amp;#34;user&amp;#34;,        &amp;#34;content&amp;#34;: &amp;#34;句子1：[公司ABC发布了季度财报，显示盈利增长。]句子2：[财报披露，公司ABC利润上升。]&amp;#34;},
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s2&#34;&gt;    {&amp;#34;role&amp;#34;: &amp;#34;assistant&amp;#34;,   &amp;#34;content&amp;#34;: &amp;#34;是&amp;#34;},
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s2&#34;&gt;    {&amp;#34;role&amp;#34;: &amp;#34;user&amp;#34;,        &amp;#34;content&amp;#34;: &amp;#34;句子1：[公司ITCAST发布了年度财报，显示盈利大幅度增长。]句子2：[财报披露，公司ITCAST更赚钱了。]&amp;#34;},
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s2&#34;&gt;    {&amp;#34;role&amp;#34;: &amp;#34;assistant&amp;#34;,   &amp;#34;content&amp;#34;: &amp;#34;是&amp;#34;},
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s2&#34;&gt;    {&amp;#34;role&amp;#34;: &amp;#34;user&amp;#34;,        &amp;#34;content&amp;#34;: &amp;#34;句子1：[黄金价格下跌，投资者抛售。]句子2：[外汇市场交易额创下新高。]&amp;#34;},
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s2&#34;&gt;    {&amp;#34;role&amp;#34;: &amp;#34;assistant&amp;#34;,   &amp;#34;content&amp;#34;: &amp;#34;不是&amp;#34;},
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s2&#34;&gt;    {&amp;#34;role&amp;#34;: &amp;#34;user&amp;#34;,        &amp;#34;content&amp;#34;: &amp;#34;句子1：[央行降息，刺激经济增长。]句子2：[新能源技术的创新。]&amp;#34;},
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s2&#34;&gt;    {&amp;#34;role&amp;#34;: &amp;#34;assistant&amp;#34;,   &amp;#34;content&amp;#34;: &amp;#34;不是&amp;#34;}, 
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s2&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s2&#34;&gt;    {&amp;#34;role&amp;#34;: &amp;#34;user&amp;#34;,        &amp;#34;content&amp;#34;: f&amp;#34;按照上述示例，回答这2个句子的情况。句子1: [...]，句子2: [...]&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;&amp;#34;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;messages&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;role&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;system&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;     &lt;span class=&#34;s2&#34;&gt;&amp;#34;content&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;sa&#34;&gt;f&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;你帮我完成文本匹配，我给你2个句子，被[]包围，你判断它们是否匹配，回答是或不是，请参考如下示例：&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;key&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;value&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;in&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;examples_data&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;items&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;():&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;t&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;in&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;value&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;n&#34;&gt;messages&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;append&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;            &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;role&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;user&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;content&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;sa&#34;&gt;f&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;句子1：[&lt;/span&gt;&lt;span class=&#34;si&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;si&#34;&gt;}&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;]，句子2：[&lt;/span&gt;&lt;span class=&#34;si&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;si&#34;&gt;}&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;]&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;n&#34;&gt;messages&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;append&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;            &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;role&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;assistant&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;content&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;key&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;q&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;in&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;questions&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;n&#34;&gt;response&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;client&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;chat&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;completions&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;create&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;n&#34;&gt;model&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;qwen3-max&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;n&#34;&gt;messages&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;messages&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;+&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[{&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;role&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;user&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;content&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;sa&#34;&gt;f&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;句子1：[&lt;/span&gt;&lt;span class=&#34;si&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;q&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;si&#34;&gt;}&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;]，句子2：[&lt;/span&gt;&lt;span class=&#34;si&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;q&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;si&#34;&gt;}&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;]&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;nb&#34;&gt;print&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;response&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;choices&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;message&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;content&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id=&#34;rag开发&#34;&gt;RAG开发
+&lt;/h2&gt;&lt;h3 id=&#34;langchain的简介&#34;&gt;LangChain的简介
+&lt;/h3&gt;&lt;p&gt;它是 Python 的第三方库，是开发大语言模型（LLM）相关业务功能的 “集成工具集”，可以简化 LLM 应用的开发流程，后续也是学习 RAG（检索增强生成）开发的核心框架。
+核心功能 API，LangChain 提供的能力包括：
+提示词优化：辅助提升提示词效果的工具接口；
+模型调用：支持对接各类 LLM 模型的统一接口；
+会话记忆：实现对话上下文的存储与管理；
+文档管理分析：对各类文档进行处理、检索、分析的功能；
+Agent 智能体构建：支持开发具备自主决策能力的智能体；
+功能链式执行：将多个功能按逻辑串联执行的能力。&lt;/p&gt;
+&lt;h3 id=&#34;langchain环境部署&#34;&gt;LangChain环境部署
+&lt;/h3&gt;&lt;h3 id=&#34;rag工作流程&#34;&gt;RAG工作流程
+&lt;/h3&gt;&lt;p&gt;这是关于RAG（检索增强生成）的核心说明，可整理为以下结构化内容：&lt;/p&gt;
+&lt;h3 id=&#34;rag的核心定义&#34;&gt;RAG的核心定义
+&lt;/h3&gt;&lt;p&gt;RAG是一种优化大模型输出的技术：在向模型提问前，先从已有知识库/文档中检索相关信息，将这些信息整合到提问中，让模型基于更精准、信息量更足的输入给出回答。&lt;/p&gt;
+&lt;p&gt;RAG的工作流程：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;离线流程（知识预处理，对应“R”）&lt;/strong&gt;
+需预先处理知识库：将文档私有知识加载后，分割为合适长度的片段，再通过向量化（转为向量表示）存储到向量数据库中，完成检索前的准备。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;在线流程（增强+生成，对应“A+G”）&lt;/strong&gt;
+用户提问后，先从向量数据库中检索相关知识片段，将这些片段与原问题融合为新的Prompt，再交给大模型生成回答。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;RAG的核心价值：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;解决知识实效性问题&lt;/strong&gt;：弥补大模型训练数据的“截止时间”限制，可接入最新文档（如财报、政策），让模型输出贴合最新信息。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;降低模型幻觉&lt;/strong&gt;：回答基于检索到的事实性资料，而非模型自身记忆，大幅减少编造信息的概率。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;成本与效率优势&lt;/strong&gt;：无需重新训练模型，仅需更新知识库即可实现知识迭代，相比微调（Fine-tuning）成本更低、效率更高。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;向量的基本概念&#34;&gt;向量的基本概念
+&lt;/h3&gt;&lt;p&gt;&lt;code&gt;text-embedding-v1&lt;/code&gt;文本嵌入模型&lt;/p&gt;
+&lt;p&gt;文本向量是文本的“数学身份证”，它通过将文字的语义信息转换为固定长度的数字列表，让计算机能够理解文字的含义，并基于这些数字进行语义相似度计算。&lt;/p&gt;
+&lt;p&gt;文本向量的关键要点&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;向量的生成&lt;/strong&gt;
+通过“文本嵌入模型”（如text-embedding-v1）完成“文本→向量”的转换（即文本嵌入过程）。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;向量的匹配方式&lt;/strong&gt;
+借助算法（如余弦相似度）计算不同向量之间的距离，以此判断文本语义的相似程度。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;向量的维度&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;维度代表模型用多少个“抽象语义特征”描述文本，每个维度对应一个特征的强度；&lt;/li&gt;
+&lt;li&gt;维度越多，语义匹配的精准度越高，但同时会增加计算和存储的性能压力，需根据场景平衡精度与成本。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;余弦相似度&#34;&gt;余弦相似度
+&lt;/h3&gt;&lt;h3 id=&#34;langchain调用大语言模型&#34;&gt;LangChain调用大语言模型
+&lt;/h3&gt;&lt;h3 id=&#34;langchain聊天模型应用&#34;&gt;LangChain聊天模型应用
+&lt;/h3&gt;&lt;h3 id=&#34;langchain嵌入模型应用&#34;&gt;LangChain嵌入模型应用
+&lt;/h3&gt;&lt;h3 id=&#34;langchain通用提示词模板&#34;&gt;LangChain通用提示词模板
+&lt;/h3&gt;&lt;h3 id=&#34;fewshot提示词模板&#34;&gt;Fewshot提示词模板
+&lt;/h3&gt;&lt;h3 id=&#34;chatprompttemplate&#34;&gt;ChatPromptTemplate
+&lt;/h3&gt;</description>
+        </item>
+        <item>
+        <title>CS336-大模型概述与tokenization</title>
+        <link>http://localhost:1313/p/cs336-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E6%A6%82%E8%BF%B0%E4%B8%8Etokenization/</link>
+        <pubDate>Thu, 15 Jan 2026 13:52:23 +0800</pubDate>
+        
+        <guid>http://localhost:1313/p/cs336-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E6%A6%82%E8%BF%B0%E4%B8%8Etokenization/</guid>
+        <description>&lt;h1 id=&#34;overview-and-tokenization&#34;&gt;Overview and Tokenization
+&lt;/h1&gt;&lt;h2 id=&#34;overview&#34;&gt;Overview
+&lt;/h2&gt;&lt;p&gt;一个很直接的问题：研究者与底层的技术正在越来越脱节。八年前，学者会补充并训练他们自己的模型，六年前还会下载一个模型再 fine-tune，而现在学者们只会向闭源模型（GPT-4/Claude/Gemini）提问。当然这是一个比较夸张的说法，但现在确实随着模型能力的提升，很多基础的工作不再需要研究者去深究了。Full understanding of this technology is necessary for fundamental research.&lt;/p&gt;
+&lt;p&gt;通过这个课程能学到:&lt;/p&gt;
+&lt;p&gt;Mechanics: how things work (什么是 Transformer, 模型如何并行使用 GPU)
+Mindset: 最大化利用硬件的显存，scaling laws！
+Intuitions: 什么样的 data 和 modeling decisions 会有更好的结果
+还特别强调了该课程最核心的理念：maximize efficiency! 也就是在给定你的数据和特定 GPU 的情况下，什么是能够训练出来的最好的模型。&lt;/p&gt;
+&lt;p&gt;正式课程从模型的整体发展历史开始，讲了下不同关键时间点模型的变化情况，其中在讲到开源的时候，第一次看到了对开源的不同的定义，感觉还挺有意思的，他把开源分了两种类型，一种叫 Open-weight models（比如 DeepSeek），另一种叫 Open-source models（比如 OLMo），前者公开模型权重，架构细节，但只提供部分训练细节，没有数据细节；而后者基本全部都公开，但也没有提供训练过程的失败案例。&lt;/p&gt;
+&lt;h2 id=&#34;tokenization&#34;&gt;Tokenization
+&lt;/h2&gt;&lt;p&gt;LLM 需要把概率分布置于 token 序列（通常用整数索引表示），所以我们需要将初始文本的字符串 encode 成 token，又需要将 token decode 回字符串，这时候就需要有 Tokenizer 来完成这些事情。&lt;/p&gt;
+&lt;p&gt;视频中的分词器网站如下：&lt;a class=&#34;link&#34; href=&#34;https://tiktokenizer.vercel.app/?encoder=gpt2&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;Tiktokenizer&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;然后讲了几个 Tokenization 的不同方法，并介绍了目前主流的大家都在用的。&lt;/p&gt;
+&lt;p&gt;Character-based tokenization：每个 character 被转换成一个 code point（整数），这样对每种语言的处理都很方便，但问题是 vocabulary 太大，有些 character 不常用，这样转换效率不高；
+Byte-based tokenization：转换成字节序列，可以把表征范围限制在 0-255，问题是有些 character 会被转换为 \xf0\x9f\x8c\x8d，序列太长，而 transformer 的上下文长度是有限的；
+Word-based tokenization：将字符串分割成单词，然后将这些分割的结果映射成整数，但问题词表可能变得巨大，包含很多不常见的词汇，voc abulary 的大小不确定；
+Byte Pair Encoding (BPE)。在 BPE 之前普遍用 word-base，之后从 GPT-2 开始使用 BPE。基本思想是在原始的文本上训练 tokenizer，自动确定 vocabulary，也就是常见的 vocabulary 用单一的 token 表示，很少出现的 vocabulary 用多个 token 表示。&lt;/p&gt;
+</description>
+        </item>
+        <item>
+        <title>minimind-项目</title>
+        <link>http://localhost:1313/p/minimind-%E9%A1%B9%E7%9B%AE/</link>
+        <pubDate>Sat, 10 Jan 2026 13:52:23 +0800</pubDate>
+        
+        <guid>http://localhost:1313/p/minimind-%E9%A1%B9%E7%9B%AE/</guid>
+        <description>&lt;h3 id=&#34;架构图&#34;&gt;架构图
+&lt;/h3&gt;&lt;h3 id=&#34;rmsnorm&#34;&gt;RMSNorm
+&lt;/h3&gt;&lt;h3 id=&#34;rope&#34;&gt;RoPE
+&lt;/h3&gt;&lt;h3 id=&#34;yarn&#34;&gt;YaRN
+&lt;/h3&gt;&lt;h3 id=&#34;gqa&#34;&gt;GQA
+&lt;/h3&gt;&lt;p&gt;待后续补充&lt;/p&gt;
+</description>
+        </item>
+        <item>
+        <title>AImath</title>
+        <link>http://localhost:1313/p/aimath/</link>
+        <pubDate>Sun, 21 Dec 2025 13:40:43 +0800</pubDate>
+        
+        <guid>http://localhost:1313/p/aimath/</guid>
+        <description>&lt;p&gt;这里复现了deepseek math v2的论文，待补充复现过程。&lt;/p&gt;
+</description>
+        </item>
+        <item>
+        <title>GoogLeNet学习</title>
+        <link>http://localhost:1313/p/googlenet%E5%AD%A6%E4%B9%A0/</link>
+        <pubDate>Sun, 21 Dec 2025 13:40:43 +0800</pubDate>
+        
+        <guid>http://localhost:1313/p/googlenet%E5%AD%A6%E4%B9%A0/</guid>
+        <description>&lt;h1 id=&#34;googlenet学习&#34;&gt;GoogLeNet学习
+&lt;/h1&gt;&lt;h2 id=&#34;概论&#34;&gt;概论
+&lt;/h2&gt;&lt;p&gt;在2014年的ImageNet挑战赛(ILSVRC14)上，GoogLeNetz和VGGNet成为了当年的双雄。GoogLeNet获得了图片分类大赛的第一名，VGGNet紧随其后。这两种模型的共同特点是网络深度更深。VGGNet;是基于LeNetz和AlexNet的一些框架结构，GoogLeNet则采用了更加大胆的网络结构。尽管GoogLeNet仅有22层，它的尺寸比AlexNet和VGGNet要小得多。&lt;/p&gt;
+&lt;p&gt;GoogLeNet的参数数量为500万个，而AlexNet的参数数量是GoogLeNet的12倍，VGGNet的参数数量又是AlexNet的3倍。因此，当内存或计算资源有限时，GoogLeNet是更好的选择。从模型结果来看，GoogLeNet的性能表现更加优越。GoogLeNet是谷歌公司研究出来的深度网络结构，命名为GoogLeNet而不是GoogleNet的原因据说是为了向LeNet致敬。&lt;/p&gt;
+&lt;h2 id=&#34;研发动机&#34;&gt;研发动机
+&lt;/h2&gt;&lt;p&gt;一般来说，提升网络性能最直接的办法就是增加网络深度和宽度，或者输入数据的大小；但这种方式存在以下问题：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;参数太多：如果训练数据集有限，参数太多很容易产生过拟合。&lt;/li&gt;
+&lt;li&gt;难以应用：网络越大、参数越多，计算复杂度越大，导致应用问题。&lt;/li&gt;
+&lt;li&gt;难以优化模型：网络越深，越容易出现梯度弥散问题（梯度越往后越容易消失）难以进行模型优化。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;原理学习&#34;&gt;原理学习
+&lt;/h2&gt;&lt;h3 id=&#34;inception结构&#34;&gt;Inception结构
+&lt;/h3&gt;&lt;p&gt;&lt;img src=&#34;http://localhost:1313/images/7.png&#34;
+	
+	
+	
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;7&#34;
+	
+	
+&gt;&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;&lt;strong&gt;待完成学习&amp;hellip;&amp;hellip;&lt;/strong&gt;&lt;/p&gt;
+</description>
+        </item>
+        <item>
+        <title>LeetCode-Day1</title>
+        <link>http://localhost:1313/p/leetcode-day1/</link>
+        <pubDate>Sun, 21 Dec 2025 13:40:43 +0800</pubDate>
+        
+        <guid>http://localhost:1313/p/leetcode-day1/</guid>
+        <description>&lt;h2 id=&#34;预备知识&#34;&gt;预备知识
+&lt;/h2&gt;&lt;h3 id=&#34;number-数字&#34;&gt;Number 数字
+&lt;/h3&gt;&lt;p&gt;int：1&lt;/p&gt;
+&lt;p&gt;float：1.1&lt;/p&gt;
+&lt;p&gt;complex：4+3j&lt;/p&gt;
+&lt;p&gt;Bool：True/False&lt;/p&gt;
+&lt;p&gt;运算：+（加） -（减） ×（乘） /（除） //（整除） %（取余）&lt;/p&gt;
+&lt;p&gt;取绝对值：abs(-1)=1&lt;/p&gt;
+&lt;p&gt;最大最小：max(1,2,3)=3，min(1,2,3)=1&lt;/p&gt;
+&lt;p&gt;pow(x,y) = $x^y$&lt;/p&gt;
+&lt;p&gt;sqrt(x) = $\sqrt{x}$&lt;/p&gt;
+&lt;h3 id=&#34;list-列表&#34;&gt;List 列表
+&lt;/h3&gt;&lt;p&gt;a = [1,2,3,4,5]&lt;/p&gt;
+&lt;p&gt;查找：a[0]:1      a[1]:2&lt;/p&gt;
+&lt;p&gt;增加：a.append(6)，a=[1,2,3,4,5,6]&lt;/p&gt;
+&lt;p&gt;更新：a[0]=9，a=[9,2,3,4,5,6]&lt;/p&gt;
+&lt;p&gt;删除：a.pop(0)，a=[2,3,4,5,6]，pop会返回删除的值，a.pop()，默认删除最后一个&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;常用函数：a=[2,3,4,5]&lt;/p&gt;
+&lt;p&gt;len(a):4&lt;/p&gt;
+&lt;p&gt;max(a):5&lt;/p&gt;
+&lt;p&gt;min(a):2&lt;/p&gt;
+&lt;p&gt;range(0,10) = range(10) : 0,1,2,&amp;hellip;,9&lt;/p&gt;
+&lt;p&gt;a.reverse()，a=[5,4,3,2]&lt;/p&gt;
+&lt;p&gt;a.clear()，a:[]&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;迭代/遍历 List&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;x&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;in&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;a&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;	&lt;span class=&#34;nb&#34;&gt;print&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;x&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;index&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;in&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;range&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;len&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;a&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt; 	&lt;span class=&#34;nb&#34;&gt;print&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;a&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;index&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;])&lt;/span&gt;   
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;List comrehension&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;a&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;2&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;3&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;4&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;5&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;b&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;i&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;i&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;i&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;in&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;a&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;b&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;4&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;9&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;16&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;25&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;if condition&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;a&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;2&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;3&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;4&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;5&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;b&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;i&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;i&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;i&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;3&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;else&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;i&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;i&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;in&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;a&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;b&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;4&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;3&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;4&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;5&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h3 id=&#34;tuple-元组&#34;&gt;Tuple 元组
+&lt;/h3&gt;&lt;p&gt;List: [1,1.5,&amp;ldquo;abc&amp;rdquo;] 增删改查&lt;/p&gt;
+&lt;p&gt;Tuple:(1,1.5,&amp;ldquo;abc&amp;rdquo;) 只有查&lt;/p&gt;
+&lt;p&gt;Tuple 查找：&lt;/p&gt;
+&lt;p&gt;a=(1,1.5,&amp;ldquo;abc&amp;rdquo;)&lt;/p&gt;
+&lt;p&gt;a[0]=1,a[1]=1.5,a[2]=&amp;ldquo;abc&amp;rdquo;&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;str/char&lt;/p&gt;
+&lt;p&gt;常用函数：&lt;/p&gt;
+&lt;p&gt;len(),max(),min()&lt;/p&gt;
+&lt;p&gt;in 操作&lt;/p&gt;
+&lt;p&gt;slice 切片操作，可以用于list/tuple&lt;/p&gt;
+&lt;p&gt;a=[1,2,3,4,5]&lt;/p&gt;
+&lt;p&gt;b=(1,2,3,4,5)&lt;/p&gt;
+&lt;p&gt;a[0:3]:0,1,2 [1,2,3]&lt;/p&gt;
+&lt;p&gt;b[0:3]:0,1,2 (1,2,3)&lt;/p&gt;
+&lt;p&gt;start:0,end:3,左闭右开&lt;/p&gt;
+&lt;p&gt;最后一位元素，可以用a[-1]表示&lt;/p&gt;
+&lt;p&gt;a[2:-1],取不到最后一个元素&lt;/p&gt;
+&lt;p&gt;a[2: ]:取到最后一个元素&lt;/p&gt;
+&lt;h3 id=&#34;set-集合&#34;&gt;Set 集合
+&lt;/h3&gt;&lt;p&gt;a={1,1.5,&amp;ldquo;abc&amp;rdquo;},无序不重复&lt;/p&gt;
+&lt;p&gt;&amp;ldquo;abc&amp;rdquo; in a -&amp;gt; True&lt;/p&gt;
+&lt;p&gt;增：a.add(1) -&amp;gt; {1,1.5,&amp;ldquo;abc&amp;rdquo;}&lt;/p&gt;
+&lt;p&gt;​	a.add(2) -&amp;gt; {1,2,1.5,&amp;ldquo;abc&amp;rdquo;}&lt;/p&gt;
+&lt;p&gt;改：a.update(a) -&amp;gt; {1,2,1.5,&amp;ldquo;abc&amp;rdquo;}&lt;/p&gt;
+&lt;p&gt;a.update({4,5}) -&amp;gt; {1,2,1.5,&amp;ldquo;abc&amp;rdquo;,4,5}&lt;/p&gt;
+&lt;p&gt;删：a.remove(2) = {1,1.5,&amp;ldquo;abc&amp;rdquo;,4,5}&lt;/p&gt;
+&lt;p&gt;len/max/min&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;= | &amp;amp; ^&lt;/p&gt;
+&lt;p&gt;a = {1,2,3}   b = {2,5,9}&lt;/p&gt;
+&lt;p&gt;a - b&lt;/p&gt;
+&lt;p&gt;a | b 或&lt;/p&gt;
+&lt;p&gt;a &amp;amp; b 与&lt;/p&gt;
+&lt;p&gt;a ^ b 不同时有的&lt;/p&gt;
+&lt;h3 id=&#34;dictionary-字典&#34;&gt;Dictionary 字典
+&lt;/h3&gt;&lt;p&gt;dict = {&amp;ldquo;name&amp;rdquo;:&amp;ldquo;learning&amp;rdquo;,&amp;ldquo;age&amp;rdquo;:18}&lt;/p&gt;
+&lt;p&gt;key:value,利用key找value&lt;/p&gt;
+&lt;p&gt;查：&lt;/p&gt;
+&lt;p&gt;dict[&amp;ldquo;name&amp;rdquo;]:learning&lt;/p&gt;
+&lt;p&gt;dict[&amp;ldquo;age&amp;rdquo;]:18&lt;/p&gt;
+&lt;p&gt;增：&lt;/p&gt;
+&lt;p&gt;dict[&amp;ldquo;platform&amp;rdquo;]=&amp;ldquo;youtube&amp;rdquo;&lt;/p&gt;
+&lt;p&gt;dict: name age platform&lt;/p&gt;
+&lt;p&gt;改：&lt;/p&gt;
+&lt;p&gt;dict[&amp;ldquo;platform&amp;rdquo;]=&amp;ldquo;bilibili&amp;rdquo;&lt;/p&gt;
+&lt;p&gt;删：&lt;/p&gt;
+&lt;p&gt;dict.pop(&amp;ldquo;platform&amp;rdquo;)&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;遍历&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;nb&#34;&gt;dict&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;name&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;staywithlearning&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;age&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;18&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# &amp;#34;name&amp;#34; in dict -&amp;gt; True&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;key&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;in&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;dict&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;nb&#34;&gt;print&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;key&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;   
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;value&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;in&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;dict&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;values&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;():&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;	&lt;span class=&#34;nb&#34;&gt;print&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;value&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;k&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;v&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;in&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;dict&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;items&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;():&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;nb&#34;&gt;print&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;k&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;v&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h3 id=&#34;string-字符串&#34;&gt;String 字符串
+&lt;/h3&gt;&lt;p&gt;s = &amp;ldquo;hello world&amp;rdquo;&lt;/p&gt;
+&lt;p&gt;s[0]:h, s[-1]:d&lt;/p&gt;
+&lt;p&gt;s[:]:&amp;ldquo;hello world&amp;rdquo;&lt;/p&gt;
+&lt;p&gt;s[0:4]:&amp;ldquo;hell&amp;rdquo;&lt;/p&gt;
+&lt;p&gt;len(s),max(s),min(s)&lt;/p&gt;
+&lt;p&gt;s.count(&amp;ldquo;h&amp;rdquo;):1&lt;/p&gt;
+&lt;p&gt;s.isupper():False 判断是否都为大写字母&lt;/p&gt;
+&lt;p&gt;s.islower():True 判断是否都为小写字母&lt;/p&gt;
+&lt;p&gt;s.isdigit():False&lt;/p&gt;
+&lt;p&gt;s.lower()-&amp;gt;改为全小写&lt;/p&gt;
+&lt;p&gt;s.upper()-&amp;gt;改为全大写&lt;/p&gt;
+&lt;p&gt;s.strip()-&amp;gt;去掉空格&lt;/p&gt;
+&lt;p&gt;s.lstrip()-&amp;gt;去掉左边空格&lt;/p&gt;
+&lt;p&gt;s.rstrip()-&amp;gt;去掉右边空格&lt;/p&gt;
+&lt;p&gt;s.swapcase()-&amp;gt;把大写变为小写，吧小写变为大写&lt;/p&gt;
+&lt;p&gt;replace(old,new). s.repalce(&amp;ldquo;l&amp;rdquo;,&amp;ldquo;E&amp;rdquo;)&lt;/p&gt;
+&lt;p&gt;split(), s.split(&amp;quot; &amp;ldquo;)，返回list，[&amp;lsquo;hello&amp;rsquo;,&amp;lsquo;world&amp;rsquo;]&lt;/p&gt;
+&lt;h3 id=&#34;array-数组&#34;&gt;Array 数组
+&lt;/h3&gt;&lt;p&gt;读非常快，查询、插入、删除非常慢&lt;/p&gt;
+&lt;h3 id=&#34;linkedlist-链表&#34;&gt;Linkedlist 链表
+&lt;/h3&gt;&lt;p&gt;数组 VS 链表&lt;/p&gt;
+&lt;p&gt;数组访问非常快，搜索、插入和删除很慢&lt;/p&gt;
+&lt;p&gt;链表插入和删除非常快，访问，搜索都很慢&lt;/p&gt;
+&lt;h3 id=&#34;hash-table-哈希表&#34;&gt;Hash Table 哈希表
+&lt;/h3&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;#常见的hash table：dict&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;score&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;s2&#34;&gt;&amp;#34;张三&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;90&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;s2&#34;&gt;&amp;#34;李四&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;85&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;s2&#34;&gt;&amp;#34;王五&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;92&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;#查&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;nb&#34;&gt;print&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;score&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;张三&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;])&lt;/span&gt;   &lt;span class=&#34;c1&#34;&gt;# 90&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;#增&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;score&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;赵六&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;88&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;#改&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;score&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;李四&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;95&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;#删&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;del&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;score&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;王五&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;Python 的 dict 和 set 底层是哈希表。
+哈希表通过 hash(key) 直接算出存放位置，所以查找特别快。
+只有“不可变”的东西，才能当哈希表的 key。&lt;/p&gt;
+&lt;h3 id=&#34;queue-队列&#34;&gt;Queue 队列
+&lt;/h3&gt;&lt;p&gt;特点：FIFO（先入先出）&lt;/p&gt;
+&lt;p&gt;双端队列：两边都可进出&lt;/p&gt;
+&lt;p&gt;List，deque&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;kn&#34;&gt;from&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;collections&lt;/span&gt; &lt;span class=&#34;kn&#34;&gt;import&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;deque&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;	&lt;span class=&#34;n&#34;&gt;q&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;deque&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;([&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;2&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;3&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;])&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;append()，尾部增加&lt;/p&gt;
+&lt;p&gt;popleft()，头部删除&lt;/p&gt;
+&lt;p&gt;上面一起使用，底下一起使用&lt;/p&gt;
+&lt;p&gt;appendlef()，头部增加&lt;/p&gt;
+&lt;p&gt;pop()，尾部删除&lt;/p&gt;
+&lt;h3 id=&#34;stack-栈&#34;&gt;Stack 栈
+&lt;/h3&gt;&lt;p&gt;特点：LIFO（后入先出）&lt;/p&gt;
+&lt;p&gt;append()&lt;/p&gt;
+&lt;p&gt;pop()&lt;/p&gt;
+&lt;p&gt;len(),max(),min()&lt;/p&gt;
+&lt;h3 id=&#34;heap-堆&#34;&gt;Heap 堆
+&lt;/h3&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;8
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;kn&#34;&gt;from&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;heapq&lt;/span&gt; &lt;span class=&#34;kn&#34;&gt;import&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;heapify&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;heappush&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;heappop&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;a&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;2&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;3&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;heapify&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;a&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;  &lt;span class=&#34;c1&#34;&gt;# 小堆&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;heappush&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;a&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;4&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;	&lt;span class=&#34;c1&#34;&gt;# 增加&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;heappop&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;a&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;c1&#34;&gt;# a = [2,3,4]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;nlargest&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;2&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;a&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;c1&#34;&gt;# [3,4]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;nsmallest&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;2&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;a&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;c1&#34;&gt;# [2,3]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;大堆乘-1，后按小堆算&lt;/p&gt;
+&lt;h3 id=&#34;tree-树&#34;&gt;Tree 树
+&lt;/h3&gt;&lt;p&gt;高，深，层&lt;/p&gt;
+&lt;p&gt;二叉树，普通二叉树，满二叉树（除了叶子节点，每个节点都有左右两个子节点），完全二叉树（从上至下，从左至右编号，编号的节点与满二叉树节点的位置相同）。&lt;/p&gt;
+&lt;p&gt;二叉树的遍历&lt;/p&gt;
+&lt;p&gt;前序遍历，根左右&lt;/p&gt;
+&lt;p&gt;中序遍历，左根右&lt;/p&gt;
+&lt;p&gt;后序遍历，左右根&lt;/p&gt;
+&lt;h2 id=&#34;1-两数之和&#34;&gt;1. 两数之和
+&lt;/h2&gt;&lt;p&gt;哈希表解法&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;Solution&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;twoSum&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;nums&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;List&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;int&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;],&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;target&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;int&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;List&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;int&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;n&#34;&gt;seen&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;i&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;num&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;in&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;enumerate&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;nums&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;            &lt;span class=&#34;n&#34;&gt;com&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;target&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;-&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;num&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;            &lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;com&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;in&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;seen&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;                &lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;seen&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;com&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;],&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;i&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;            &lt;span class=&#34;k&#34;&gt;else&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;                &lt;span class=&#34;n&#34;&gt;seen&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;num&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;i&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;暴力解法&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;8
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;Solution&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;twoSum&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;nums&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;List&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;int&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;],&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;target&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;int&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;List&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;int&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;n&#34;&gt;n&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;len&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;nums&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;i&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;in&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;range&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;n&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;            &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;j&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;in&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;range&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;i&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;+&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;n&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;                &lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;nums&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;i&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;+&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;nums&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;j&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;==&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;target&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;                    &lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;i&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;j&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id=&#34;49-字母异位词分组&#34;&gt;49. 字母异位词分组
+&lt;/h2&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;9
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;Solution&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;groupAnagrams&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;strs&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;List&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;str&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;])&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;List&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;List&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;str&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]]:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;n&#34;&gt;box&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;s&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;in&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;strs&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;            &lt;span class=&#34;n&#34;&gt;sorted_key&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;join&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;sorted&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;s&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;))&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;            &lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;sorted_key&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;not&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;in&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;box&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;                &lt;span class=&#34;n&#34;&gt;box&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;sorted_key&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;            &lt;span class=&#34;n&#34;&gt;box&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;sorted_key&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;append&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;s&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;list&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;box&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;values&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;())&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description>
+        </item>
+        <item>
+        <title>nnU-Net-优化改进</title>
+        <link>http://localhost:1313/p/nnu-net-%E4%BC%98%E5%8C%96%E6%94%B9%E8%BF%9B/</link>
+        <pubDate>Sun, 21 Dec 2025 13:40:43 +0800</pubDate>
+        
+        <guid>http://localhost:1313/p/nnu-net-%E4%BC%98%E5%8C%96%E6%94%B9%E8%BF%9B/</guid>
+        <description>&lt;p&gt;填不完坑了，怎么这么多博客没写！！！！！&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;以下为口头叙述，待完善博客撰写！！！！！！&lt;/p&gt;
+&lt;p&gt;nnU-Net 虽然强，但它是纯卷积的，看东西&amp;rsquo;视野&amp;rsquo;比较窄。胰腺肿瘤太小了，需要结合整个腹部的上下文才能分得准，所以我决定引入最近很火的Mamba架构，因为它能用低显存实现全局感受野。&lt;/p&gt;
+&lt;p&gt;我没有照搬现有的U-Mamba，而是设计了一个&amp;rsquo;双向混合模块&amp;rsquo;。 这里的灵感主要有两点： 第一，医学图像不像文本，没有先后顺序，必须前后双向看，所以我把Mamba 做成了双向的。 第二，Mamba 容易忽略细节，所以我给它并联了一个卷积分支，专门抓肿瘤的边缘纹理。&lt;/p&gt;
+&lt;p&gt;效果非常超出预期。 虽然现在只跑了300 多个Epoch（总共要跑1000），但肿瘤的Dice 已经冲到了50.7%。 要知道这个数据集的SOTA（最好成绩）也就55% 左右。我们才跑了三分之一的进度就快追平SOTA 了，这说明我的&amp;rsquo;卷积+Mamba&amp;rsquo;混合策略是非常对路的。&lt;/p&gt;
+&lt;p&gt;第一部分：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;关于纯 ViT 的尝试 (Task004)&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;最开始，我尝试过直接用 Vision Transformer 替换 nnU-Net 的 Backbone，并在 Task004 (海马体) 数据集上做了测试。&lt;/p&gt;
+&lt;p&gt;但结果并不理想，Dice 分数只有 77% 左右（通常 CNN 能达到 85%-90%）。&lt;/p&gt;
+&lt;p&gt;经过分析主要原因有两点：&lt;/p&gt;
+&lt;p&gt;第一，ViT 缺乏归纳偏置。它把图像看作序列，对局部纹理不敏感，而医学图像（尤其是海马体这种小结构）非常依赖边界的精确度。&lt;/p&gt;
+&lt;p&gt;第二，ViT 是数据饥渴型的。Task004 数据量太小，导致 Transformer 还没学好全局关系就已经过拟合了。所以纯 ViT 在这种小样本医学任务上不合适。”&lt;/p&gt;
+&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;关于小样本自监督的尝试&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;后来为了解决数据依赖问题，尝试引入小样本自监督学习 (Few-Shot Self-Supervised)。&lt;/p&gt;
+&lt;p&gt;但在实验中发现，这种方法引入了极其复杂的预训练流程，而且训练极其不稳定，很难收敛。考虑到我们要在有限算力和时间内产出稳定的改进，我认为这个方向的性价比太低，所以及时止损，暂停了这个方向。&lt;/p&gt;
+&lt;p&gt;第二部分：为什么转向Task007 与Mamba？&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;为什么最终选择 Task007 (胰腺)？&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;吸取了之前的教训，意识到需要一个既需要全局上下文，又有极高难度的任务来验证新架构。&lt;/p&gt;
+&lt;p&gt;Task004 太简单且太依赖局部，而 Task007 (胰腺及肿瘤) 是公认的数据集刷榜的：&lt;/p&gt;
+&lt;p&gt;背景干扰大： 胰腺形状极不规则，位置多变。&lt;/p&gt;
+&lt;p&gt;类别极不平衡： 胰腺肿瘤在图像里可能只占几十个像素。&lt;/p&gt;
+&lt;p&gt;这正是验证长距离建模能力的最佳场景。”&lt;/p&gt;
+&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;为什么选择 Bi-Hybrid Mamba？&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;针对 Task007 的问题，我设计了 双向混合 Mamba 架构。&lt;/p&gt;
+&lt;p&gt;这是为了解决之前 ViT 的问题：我们既要 Transformer 那样的全局视野，又要 CNN 的局部精度。&lt;/p&gt;
+&lt;p&gt;双向设计： 解决了医学图像没有时间顺序的问题，前后像素都能参考。&lt;/p&gt;
+&lt;p&gt;混合卷积： 我特意保留了一个卷积分支，专门用来抓肿瘤的边缘。&lt;/p&gt;
+&lt;p&gt;目前的实验数据非常有说服力。现在跑到了 300 多个 Epoch（总共1000）：&lt;/p&gt;
+&lt;p&gt;胰腺 Dice 到了 70.1%，稳步上升。&lt;/p&gt;
+&lt;p&gt;最难的肿瘤Dice 已经冲到了50.7%。&lt;/p&gt;
+&lt;p&gt;这个方法在 007 上的核心优势在于：&lt;/p&gt;
+&lt;p&gt;相比于基线 nnU-Net，我的模型在极小病灶（肿瘤）的识别上展现出了惊人的爆发力。&lt;/p&gt;
+&lt;p&gt;肿瘤分割精度就已经逼近了 SOTA 的基线水平（约 52%-55%）。这证明了 Mamba 带来的全局上下文信息，让模型在复杂的腹部背景中，也能精准地定位到微小的肿瘤，这是传统 CNN 很难做到的。&lt;/p&gt;
+&lt;p&gt;第一，Mamba 原本是处理文本的，只能单向阅读。但 CT 图像是 3D 的，后面的像素对前面的判断也很重要。所以我设计了双向扫描，，能同时参考上下文，解决了空间信息丢失的问题。&lt;/p&gt;
+&lt;p&gt;第二，Mamba 擅长看大概轮廓，但容易把边缘磨平。而胰腺肿瘤的边缘非常模糊且不规则。所以我特意旁路并联了一个卷积层。利用卷积对纹理的高敏感性，专门用来抠肿瘤的边缘细节。&lt;/p&gt;
+</description>
+        </item>
+        <item>
         <title>训练范式-学习</title>
         <link>http://localhost:1313/p/%E8%AE%AD%E7%BB%83%E8%8C%83%E5%BC%8F-%E5%AD%A6%E4%B9%A0/</link>
         <pubDate>Sat, 20 Dec 2025 13:40:43 +0800</pubDate>
@@ -915,11 +2551,11 @@ $$&lt;p&gt;
 </description>
         </item>
         <item>
-        <title>ViT-AI-复现</title>
-        <link>http://localhost:1313/p/vit-ai-%E5%A4%8D%E7%8E%B0/</link>
+        <title>ViT-AI-再次复现</title>
+        <link>http://localhost:1313/p/vit-ai-%E5%86%8D%E6%AC%A1%E5%A4%8D%E7%8E%B0/</link>
         <pubDate>Wed, 26 Nov 2025 13:40:43 +0800</pubDate>
         
-        <guid>http://localhost:1313/p/vit-ai-%E5%A4%8D%E7%8E%B0/</guid>
+        <guid>http://localhost:1313/p/vit-ai-%E5%86%8D%E6%AC%A1%E5%A4%8D%E7%8E%B0/</guid>
         <description>&lt;p&gt;论文出处：&lt;/p&gt;
 &lt;p&gt;[&lt;a class=&#34;link&#34; href=&#34;https://arxiv.org/abs/2505.12732&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
     &gt;2505.12732] Terrain-aware Deep Learning for Wind Energy Applications: From Kilometer-scale Forecasts to Fine Wind Fields&lt;/a&gt;&lt;/p&gt;
