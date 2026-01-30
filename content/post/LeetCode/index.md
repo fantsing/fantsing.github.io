@@ -1,6 +1,6 @@
 +++
 date = '2025-12-21T13:40:43+08:00'
-title = 'LeetCode-Day1'
+title = 'LeetCode'
 
 +++
 
