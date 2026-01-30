@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="参考博客链接：\n机器学习：监督学习、无监督学习、半监督学习、强化学习-CSDN博客\n一文读懂强化学习：RL全面解析与Pytorch实战_强化学习实战-CSDN博客\n强化学习入门：基本思想和经典算法 - 知乎\n有监督学习 监督学习的定义 定义：根据已有的数据集，知道输入和输出结果之间的关系。根据这种已知的关系，训练得到一个最优的模型。\n在监督学习中训练数据既有特征又有标签，通过训练，让机器可以自己找到特征和标签之间的联系，在面对只有特征没有标签的数据时，可以判断出标签。\n简单理解：可以把监督学习理解为我们教机器如何做事情。给机器许多“带答案”的样本，让它学习规律，以便遇到新数据时可以预测答案。\n监督学习的公式理解 输入：\\(X\\)\n输出（答案标签）：\\( y \\)\n学习的模型（函数）：\\( f(\\cdot) \\)\n目标：让模型学到一个函数：\n\\[f(x) \\approx y\\]使得模型输入 x 后能输出接近正确答案 y\n学习过程（找最佳参数 θ）：\n\\[\\min_\\theta L(f_\\theta (x), y)\\]\\( L \\) 是损失函数（计算预测误差），目的是让误差越小越好\n监督学习的类别 监督学习任务主要包括分类和回归两种类型，在监督学习中，数据集中的样本被称为“训练样本”，并且每个样本都有一个输入特征和相应的标签或目标值。\n分类： 在分类任务中，目标是将输入数据分到预定义的类别中。每个类别都有一个唯一的标签。算法在训练阶段通过学习数据的特征和标签之间的关系来构建一个模型。然后，在测试阶段，模型用于预测未见过的数据的类别标签。例如，将电子邮件标记为“垃圾邮件”或“非垃圾邮件”，将图像识为“猫”或“狗”。\n回归： 在回归任务中，目标是预测连续数值的输出。与分类不同，输出标签在回归任务中是连续的。算法在训练阶段通过学习输入特征和相应的连续输出之间的关系来构建模型。在测试阶段，模型用于预测未见过的数据的输出值。例如，预测房屋的售价、预测销售量等。\n监督学习的常见算法 ① 线性回归 Linear Regression\n② 逻辑回归 Logistic Regression\n③ k 近邻算法 KNN\n④ 决策树 Decision Tree\n⑤ 随机森林 Random Forest\n⑥ 支持向量机 SVM\n⑦ 朴素贝叶斯 Naive Bayes\n">
+<title>训练范式-学习</title>
+
+<link rel='canonical' href='http://localhost:1313/p/%E8%AE%AD%E7%BB%83%E8%8C%83%E5%BC%8F-%E5%AD%A6%E4%B9%A0/'>
+
+<link rel="stylesheet" href="/scss/style.min.6a692fd055deae459f2a9767f57f3855ba80cafd5041317f24f7360f6ca47cdf.css"><meta property='og:title' content="训练范式-学习">
+<meta property='og:description' content="参考博客链接：\n机器学习：监督学习、无监督学习、半监督学习、强化学习-CSDN博客\n一文读懂强化学习：RL全面解析与Pytorch实战_强化学习实战-CSDN博客\n强化学习入门：基本思想和经典算法 - 知乎\n有监督学习 监督学习的定义 定义：根据已有的数据集，知道输入和输出结果之间的关系。根据这种已知的关系，训练得到一个最优的模型。\n在监督学习中训练数据既有特征又有标签，通过训练，让机器可以自己找到特征和标签之间的联系，在面对只有特征没有标签的数据时，可以判断出标签。\n简单理解：可以把监督学习理解为我们教机器如何做事情。给机器许多“带答案”的样本，让它学习规律，以便遇到新数据时可以预测答案。\n监督学习的公式理解 输入：\\(X\\)\n输出（答案标签）：\\( y \\)\n学习的模型（函数）：\\( f(\\cdot) \\)\n目标：让模型学到一个函数：\n\\[f(x) \\approx y\\]使得模型输入 x 后能输出接近正确答案 y\n学习过程（找最佳参数 θ）：\n\\[\\min_\\theta L(f_\\theta (x), y)\\]\\( L \\) 是损失函数（计算预测误差），目的是让误差越小越好\n监督学习的类别 监督学习任务主要包括分类和回归两种类型，在监督学习中，数据集中的样本被称为“训练样本”，并且每个样本都有一个输入特征和相应的标签或目标值。\n分类： 在分类任务中，目标是将输入数据分到预定义的类别中。每个类别都有一个唯一的标签。算法在训练阶段通过学习数据的特征和标签之间的关系来构建一个模型。然后，在测试阶段，模型用于预测未见过的数据的类别标签。例如，将电子邮件标记为“垃圾邮件”或“非垃圾邮件”，将图像识为“猫”或“狗”。\n回归： 在回归任务中，目标是预测连续数值的输出。与分类不同，输出标签在回归任务中是连续的。算法在训练阶段通过学习输入特征和相应的连续输出之间的关系来构建模型。在测试阶段，模型用于预测未见过的数据的输出值。例如，预测房屋的售价、预测销售量等。\n监督学习的常见算法 ① 线性回归 Linear Regression\n② 逻辑回归 Logistic Regression\n③ k 近邻算法 KNN\n④ 决策树 Decision Tree\n⑤ 随机森林 Random Forest\n⑥ 支持向量机 SVM\n⑦ 朴素贝叶斯 Naive Bayes\n">
+<meta property='og:url' content='http://localhost:1313/p/%E8%AE%AD%E7%BB%83%E8%8C%83%E5%BC%8F-%E5%AD%A6%E4%B9%A0/'>
+<meta property='og:site_name' content='Lee Sivan&#39;s Blog'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:published_time' content='2025-12-20T13:40:43&#43;08:00'/><meta property='article:modified_time' content='2025-12-20T13:40:43&#43;08:00'/>
+<meta name="twitter:title" content="训练范式-学习">
+<meta name="twitter:description" content="参考博客链接：\n机器学习：监督学习、无监督学习、半监督学习、强化学习-CSDN博客\n一文读懂强化学习：RL全面解析与Pytorch实战_强化学习实战-CSDN博客\n强化学习入门：基本思想和经典算法 - 知乎\n有监督学习 监督学习的定义 定义：根据已有的数据集，知道输入和输出结果之间的关系。根据这种已知的关系，训练得到一个最优的模型。\n在监督学习中训练数据既有特征又有标签，通过训练，让机器可以自己找到特征和标签之间的联系，在面对只有特征没有标签的数据时，可以判断出标签。\n简单理解：可以把监督学习理解为我们教机器如何做事情。给机器许多“带答案”的样本，让它学习规律，以便遇到新数据时可以预测答案。\n监督学习的公式理解 输入：\\(X\\)\n输出（答案标签）：\\( y \\)\n学习的模型（函数）：\\( f(\\cdot) \\)\n目标：让模型学到一个函数：\n\\[f(x) \\approx y\\]使得模型输入 x 后能输出接近正确答案 y\n学习过程（找最佳参数 θ）：\n\\[\\min_\\theta L(f_\\theta (x), y)\\]\\( L \\) 是损失函数（计算预测误差），目的是让误差越小越好\n监督学习的类别 监督学习任务主要包括分类和回归两种类型，在监督学习中，数据集中的样本被称为“训练样本”，并且每个样本都有一个输入特征和相应的标签或目标值。\n分类： 在分类任务中，目标是将输入数据分到预定义的类别中。每个类别都有一个唯一的标签。算法在训练阶段通过学习数据的特征和标签之间的关系来构建一个模型。然后，在测试阶段，模型用于预测未见过的数据的类别标签。例如，将电子邮件标记为“垃圾邮件”或“非垃圾邮件”，将图像识为“猫”或“狗”。\n回归： 在回归任务中，目标是预测连续数值的输出。与分类不同，输出标签在回归任务中是连续的。算法在训练阶段通过学习输入特征和相应的连续输出之间的关系来构建模型。在测试阶段，模型用于预测未见过的数据的输出值。例如，预测房屋的售价、预测销售量等。\n监督学习的常见算法 ① 线性回归 Linear Regression\n② 逻辑回归 Logistic Regression\n③ k 近邻算法 KNN\n④ 决策树 Decision Tree\n⑤ 随机森林 Random Forest\n⑥ 支持向量机 SVM\n⑦ 朴素贝叶斯 Naive Bayes\n">
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="Toggle Menu">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/avatar_hu_c14aa3b58f97651b.png" width="300"
+                            height="311" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">Lee Sivan&#39;s Blog</a></h1>
+            <h2 class="site-description"></h2>
+        </div>
+    </header><ol class="menu-social">
+            
+                <li>
+                    <a 
+                        href='15542277303@163.com'
+                        target="_blank"
+                        title="Email"
+                        rel="me"
+                    >
+                        
+                        
+                            <?xml version="1.0" encoding="utf-8"?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+<svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M4 7.00005L10.2 11.65C11.2667 12.45 12.7333 12.45 13.8 11.65L20 7" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="3" y="5" width="18" height="14" rx="2" stroke="#000000" stroke-width="2" stroke-linecap="round"/>
+</svg>
+                        
+                    </a>
+                </li>
+            
+                <li>
+                    <a 
+                        href='https://github.com/fantsing'
+                        target="_blank"
+                        title="GitHub"
+                        rel="me"
+                    >
+                        
+                        
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5" />
+</svg>
+
+
+
+                        
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>Home</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/about/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>About</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>Archives</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>Search</span>
+            </a>
+        </li>
+        
+        <li class="menu-bottom-section">
+            <ol class="menu">
+
+                
+                    <li id="dark-mode-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <span>Dark Mode</span>
+                    </li>
+                
+            </ol>
+        </li>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">Table of contents</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li><a href="#有监督学习">有监督学习</a>
+      <ol>
+        <li><a href="#监督学习的定义">监督学习的定义</a></li>
+        <li><a href="#监督学习的公式理解">监督学习的公式理解</a></li>
+        <li><a href="#监督学习的类别">监督学习的类别</a></li>
+        <li><a href="#监督学习的常见算法">监督学习的常见算法</a></li>
+      </ol>
+    </li>
+    <li><a href="#无监督学习">无监督学习</a>
+      <ol>
+        <li><a href="#无监督学习的定义">无监督学习的定义</a></li>
+        <li><a href="#无监督学习的公式理解">无监督学习的公式理解</a></li>
+        <li><a href="#无监督学习的类别">无监督学习的类别</a></li>
+        <li><a href="#无监督学习的常见算法">无监督学习的常见算法</a></li>
+      </ol>
+    </li>
+    <li><a href="#半监督学习">半监督学习</a>
+      <ol>
+        <li><a href="#半监督学习的定义">半监督学习的定义</a></li>
+        <li><a href="#半监督学习的公式理解">半监督学习的公式理解</a></li>
+        <li><a href="#半监督学习的类别">半监督学习的类别</a></li>
+        <li><a href="#半监督学习的常见算法">半监督学习的常见算法</a></li>
+      </ol>
+    </li>
+    <li><a href="#强化学习">强化学习</a>
+      <ol>
+        <li><a href="#强化学习的定义">强化学习的定义</a></li>
+        <li><a href="#强化学习的类别">强化学习的类别</a></li>
+        <li><a href="#强化学习的常见算法">强化学习的常见算法</a></li>
+      </ol>
+    </li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+            <main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/p/%E8%AE%AD%E7%BB%83%E8%8C%83%E5%BC%8F-%E5%AD%A6%E4%B9%A0/">训练范式-学习</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">Dec 20, 2025</time>
+            </div>
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+                <time class="article-time--reading">
+                    2 minute read
+                </time>
+            </div>
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <p>参考博客链接：</p>
+<p><a class="link" href="https://blog.csdn.net/lsb2002/article/details/132005658"  target="_blank" rel="noopener"
+    >机器学习：监督学习、无监督学习、半监督学习、强化学习-CSDN博客</a></p>
+<p><a class="link" href="https://blog.csdn.net/magicyangjay111/article/details/132645347"  target="_blank" rel="noopener"
+    >一文读懂强化学习：RL全面解析与Pytorch实战_强化学习实战-CSDN博客</a></p>
+<p><a class="link" href="https://zhuanlan.zhihu.com/p/466455380"  target="_blank" rel="noopener"
+    >强化学习入门：基本思想和经典算法 - 知乎</a></p>
+<h2 id="有监督学习">有监督学习
+</h2><h3 id="监督学习的定义">监督学习的定义
+</h3><p>定义：根据已有的数据集，知道输入和输出结果之间的关系。根据这种已知的关系，训练得到一个最优的模型。</p>
+<p>在监督学习中训练数据既有特征又有标签，通过训练，让机器可以自己找到特征和标签之间的联系，在面对只有特征没有标签的数据时，可以判断出标签。</p>
+<p><img src="/images/51.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="51"
+	
+	
+></p>
+<p>简单理解：可以把监督学习理解为我们教机器如何做事情。给机器许多“带答案”的样本，让它学习规律，以便遇到新数据时可以预测答案。</p>
+<h3 id="监督学习的公式理解">监督学习的公式理解
+</h3><p>输入：\(X\)</p>
+<p>输出（答案标签）：\( y \)</p>
+<p>学习的模型（函数）：\( f(\cdot) \)</p>
+<p>目标：让模型学到一个函数：</p>
+\[f(x) \approx y\]<p>使得模型输入 x 后能输出接近正确答案 y</p>
+<p>学习过程（找最佳参数 θ）：</p>
+\[\min_\theta L(f_\theta (x), y)\]<p>\( L \) 是损失函数（计算预测误差），目的是让误差越小越好</p>
+<h3 id="监督学习的类别">监督学习的类别
+</h3><p>监督学习任务主要包括分类和回归两种类型，在监督学习中，数据集中的样本被称为“训练样本”，并且每个样本都有一个输入特征和相应的标签或目标值。</p>
+<p>分类： 在分类任务中，目标是将输入数据分到预定义的类别中。每个类别都有一个唯一的标签。算法在训练阶段通过学习数据的特征和标签之间的关系来构建一个模型。然后，在测试阶段，模型用于预测未见过的数据的类别标签。例如，将电子邮件标记为“垃圾邮件”或“非垃圾邮件”，将图像识为“猫”或“狗”。</p>
+<p>回归： 在回归任务中，目标是预测连续数值的输出。与分类不同，输出标签在回归任务中是连续的。算法在训练阶段通过学习输入特征和相应的连续输出之间的关系来构建模型。在测试阶段，模型用于预测未见过的数据的输出值。例如，预测房屋的售价、预测销售量等。</p>
+<h3 id="监督学习的常见算法">监督学习的常见算法
+</h3><p>① <strong>线性回归 Linear Regression</strong></p>
+<p>② <strong>逻辑回归 Logistic Regression</strong></p>
+<p>③ <strong>k 近邻算法 KNN</strong></p>
+<p>④ <strong>决策树 Decision Tree</strong></p>
+<p>⑤ <strong>随机森林 Random Forest</strong></p>
+<p>⑥ <strong>支持向量机 SVM</strong></p>
+<p>⑦ <strong>朴素贝叶斯 Naive Bayes</strong></p>
+<p>⑧ <strong>梯度提升树 GBDT</strong></p>
+<p>⑨ <strong>XGBoost / LightGBM / CatBoost</strong></p>
+<p>⑩ <strong>深度学习</strong>：如 CNN、RNN、Transformer</p>
+<p>这些都可用于监督学习，只要有标签数据。</p>
+<h2 id="无监督学习">无监督学习
+</h2><h3 id="无监督学习的定义">无监督学习的定义
+</h3><p>定义：我们不知道数据集中数据、特征之间的关系，而是要根据聚类或一定的模型得到数据之间的关系。</p>
+<p>在无监督学习中数据只有特征无标签，是一种机器学习的训练方式，它本质上是一个统计手段，在没有标签的数据里可以发现潜在的一些结构的一种训练方式。</p>
+<p>简单理解：比起监督学习，无监督学习更像是自学，让机器学会自己做事情。</p>
+<p><img src="/images/52.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="52"
+	
+	
+></p>
+<h3 id="无监督学习的公式理解">无监督学习的公式理解
+</h3><p>​										</p>
+\[\min_\theta ; L(X, f_\theta(X))\]<p>\(X\)：输入数据</p>
+<p>\(f_\theta\)：模型</p>
+<p>\( L \)：让模型学到某种规律的损失函数</p>
+<p>无监督学习就是设计一个损失，使模型在没有答案的情况下学到结构。</p>
+<h3 id="无监督学习的类别">无监督学习的类别
+</h3><p>无监督学习的特点是在训练数据中没有标签或目标值。无监督学习的目标是从数据中发现隐藏的结构和模式，而不是预测特定的标签或目标。无监督学习的主要类别包括以下几种：</p>
+<p>聚类：聚类是将数据样本分成相似的组别或簇的过程。它通过计算样本之间的相似性度量来将相似的样本聚集在一起。聚类是无监督学习中最常见的任务之一，常用于数据分析、市场细分、图像分割等。</p>
+<p>降维：降维是将高维数据转换为低维表示的过程，同时尽可能地保留数据的特征。降维技术可以减少数据的复杂性、去除冗余信息，并可用于可视化数据、特征提取等。常见的降维方法有主成分分析（PCA）和t-SNE等。</p>
+<p>关联规则挖掘：关联规则挖掘用于发现数据集中项之间的关联和频繁项集。这些规则描述了数据集中不同项之间的关联性，通常在市场篮子分析、购物推荐等方面应用广泛。</p>
+<p>异常检测：异常检测用于识别与大多数样本不同的罕见或异常数据点。它在检测异常事件、欺诈检测、故障检测等领域有着重要的应用。</p>
+<p>无监督学习在数据挖掘、模式识别、特征学习等领域中发挥着重要作用。通过发现数据中的结构和模式，无监督学习有助于我们更好地理解数据，从中提取有用的信息，并为其他任务提供有益的预处理步骤。</p>
+<h3 id="无监督学习的常见算法">无监督学习的常见算法
+</h3><p>① 聚类，代表算法：K-means、DBSCAN、GMM，作用：自动分组</p>
+<p>② 降维，代表算法：PCA、t-SNE、UMAP，作用：压缩维度、特征提取</p>
+<p>③ 异常检测，代表算法：One-Class SVM、LOF、Isolation Forest，作用：识别异常数据</p>
+<p>④ 关联分析，代表算法：Apriori、FP-growth，作用：挖掘关联规律</p>
+<h2 id="半监督学习">半监督学习
+</h2><h3 id="半监督学习的定义">半监督学习的定义
+</h3><p>半监督学习就是：有一小部分样本有答案，另一大部分没答案，让机器一起利用它们来学习。目标是利用同时包含有标签和无标签的数据来构建一个模型，使得模型能够在测试阶段更好地泛化到新的、未见过的数据。</p>
+<p>半监督学习介于监督学习和无监督学习之间。在半监督学习中，训练数据同时包含有标签的数据和无标签的数据。通常情况下，获取带有标签的数据可能会比较昂贵或耗费大量的时间，而采集无标签的数据则相对容易和便宜。</p>
+<p>无标签的数据可以起到<strong>两个重要作用</strong>：</p>
+<p>利用未标记数据的信息：未标记数据可能包含对数据分布、结构和隐含特征的有用信息，这些信息可以帮助模型更好地进行泛化。</p>
+<p>利用标记数据的传播效应：通过利用标记数据与无标签数据之间的数据分布相似性，可以通过传播标签信息到无标签样本，进而增强模型的性能。</p>
+<p>半监督学习通过充分利用未标记数据，可以在某些情况下显著提高模型的性能，并且有助于在数据有限的情况下构建更加健壮和泛化能力强的机器学习模型。</p>
+<p><img src="/images/53.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="53"
+	
+	
+></p>
+<h3 id="半监督学习的公式理解">半监督学习的公式理解
+</h3><p>假设模型是：</p>
+<p>输入：\( x \)
+有标签的样本：\( (x_i, y_i) \)
+无标签样本：\( x_j \)</p>
+\[\min_\theta \mathcal L =\mathcal L_{\text{sup}}(x_i, y_i) + \lambda \mathcal L_{\text{unsup}}(x_j)\]<p>\( \mathcal L_{\text{sup}} \)：有监督损失（使用有标签的数据）
+\( \mathcal L_{\text{unsup}} \)：无监督损失（使用没标签的数据）
+\( \lambda \)：权重平衡两个损失贡献</p>
+<p>监督损失通常使用交叉熵：</p>
+\[\mathcal L_{\text{sup}}= - \sum y \log f(x)\]<p>意思是：预测越接近真实标签越好</p>
+<p>无监督损失  \(L_{unsup}\)</p>
+<p>常见做法：</p>
+<p>* consistency consistency consistency（保持一致性）
+* pseudo labels（伪标签）
+* smoothness（光滑性约束）</p>
+\[\mathcal L_{\text{unsup}}= | f(x_j) - f(\tilde x_j) |^2\]<p>，意思是：模型对同一无标签样本的预测前后一致</p>
+<h3 id="半监督学习的类别">半监督学习的类别
+</h3><p>半监督学习是介于监督学习和无监督学习之间的一种学习方式，它利用同时包含有标签和无标签数据的训练集来构建模型。半监督学习的类别主要分为以下几种：</p>
+<p>半监督分类：在半监督分类中，训练数据中同时包含带有标签的样本和无标签的样本。模型的目标是利用这些标签信息和无标签数据的分布信息来提高分类性能。半监督分类算法可以在分类任务中利用未标记数据来扩展有标签数据集，从而提高模型的准确性。</p>
+<p>半监督回归：半监督回归任务与半监督分类类似，但应用于回归问题。模型通过有标签的数据和无标签数据进行训练，以提高对未标记数据的回归预测准确性。</p>
+<p>半监督聚类：半监督聚类算法将有标签数据和无标签数据同时用于聚类任务。它们可以通过结合数据的相似性信息和标签信息，来更好地识别潜在的簇结构。</p>
+<p>半监督异常检测：半监督异常检测任务旨在从同时包含正常样本和异常样本的数据中，利用有限的标签信息来检测异常。这在异常样本较少的情况下特别有用。</p>
+<p>生成对抗网络（GANs）中的半监督学习：GANs可以被用于实现半监督学习。在这种情况下，生成器和判别器网络可以使用有标签和无标签的样本，以提高生成模型的性能。</p>
+<h3 id="半监督学习的常见算法">半监督学习的常见算法
+</h3><p><strong>① 基于伪标签（Pseudo-label）的方法</strong>：用已训练模型给无标签数据产生“临时标签”，再用它们继续训练。</p>
+<p>* Pseudo Labeling（最基本）
+* Self-Training（自训练）
+* FixMatch</p>
+<p><strong>② 一致性约束（Consistency Regularization）方法</strong>：对同一个样本，不管怎么增强、扰动，模型预测应该一致。</p>
+<p>* Π-model
+* Mean Teacher
+* Temporal Ensembling
+* VAT（Virtual Adversarial Training）</p>
+<p><strong>③ 基于图的半监督学习（Graph-based SSL）</strong>：样本之间关系由图表达，相似样本应该预测相似标签。</p>
+<p>* Label Propagation
+* Label Spreading
+* Graph Neural Networks (GNN 也属于半监督框架)</p>
+<p><strong>④ 生成式半监督学习方法</strong>：利用生成模型帮助学习分布</p>
+<p>* Semi-supervised GAN
+* Variational Autoencoder+SSL(SSVAE)</p>
+<h2 id="强化学习">强化学习
+</h2><h3 id="强化学习的定义">强化学习的定义
+</h3><p>定义： 强化学习是让一个智能体在环境中通过尝试和错误来学习行为策略。智能体通过与环境进行交互，根据奖励信号来调整其行为策略，以达到最大化累积奖励的目标。</p>
+<p>在强化学习中，智能体不需要明确地告诉如何执行任务，而是通过尝试和错误的方式进行学习。当智能体在环境中采取某个动作时，环境会返回一个奖励信号，表示该动作的好坏程度。智能体的目标是通过与环境交互，学习到一种最优策略，使其在长期累积的奖励最大化。</p>
+<p><img src="/images/54.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="54"
+	
+	
+></p>
+<p>强化学习的框架主要由以下几个核心组成：</p>
+<p>状态（State）：反映环境或系统当前的情况。
+动作（Action）：智能体在特定状态下可以采取的操作。
+奖励（Reward）：一个数值反馈，用于量化智能体采取某一动作后环境的反应。
+策略（Policy）：一个映射函数，指导智能体在特定状态下应采取哪一动作。</p>
+<p>这四个元素共同构成了马尔可夫决策过程，这是强化学习最核心的数学模型。
+（1）智能体观察当前环境状态（state）。
+（2）基于当前状态，智能体选择一个动作（action）。
+（3）环境根据智能体的动作转换到新的状态，并返回一个奖励信号（reward）。
+（4）智能体根据奖励信号更新其策略，以便在将来的决策中获得更好的奖励。
+（5）重复以上步骤，直到智能体学习到一个使其获得最大累积奖励的策略。</p>
+<h3 id="强化学习的类别">强化学习的类别
+</h3><p>强化学习是一种机器学习方法，根据智能体（agent）与环境的交互来学习适当的行为策略以最大化累积奖励。强化学习的类别主要可以分为以下几种：</p>
+<p>基于值的强化学习：基于值的强化学习方法旨在学习价值函数，即给定状态或状态-动作对的值，代表了智能体在该状态或状态-动作对上能够获得的累积奖励的估计值。这些方法通常通过使用贝尔曼方程或其变种来更新价值函数，并使用它来选择动作。</p>
+<p>基于策略的强化学习：基于策略的强化学习方法直接学习策略函数，即将状态映射到动作的映射。策略可以是确定性的（对于每个状态只输出一个动作）或是概率性的（对于每个状态输出动作的概率分布）。这些方法通常通过梯度上升方法来更新策略参数，以最大化累积奖励。</p>
+<p>基于模型的强化学习：基于模型的强化学习方法学习环境的模型，即从状态和动作预测下一个状态和奖励。然后，它可以使用学到的模型进行规划和决策，而无需真实地与环境进行交互。这样可以提高样本效率和规划效率。</p>
+<p>深度强化学习：深度强化学习将深度神经网络与强化学习相结合。它通常使用深度神经网络来近似值函数或策略函数。深度强化学习在处理高维状态空间和动作空间的任务时表现出色。</p>
+<p>多智能体强化学习：多智能体强化学习研究多个智能体在相互作用环境中的学习问题。在这种情况下，每个智能体的策略和动作会影响其他智能体的状态和奖励，因此学习变得更加复杂。</p>
+<h3 id="强化学习的常见算法">强化学习的常见算法
+</h3><p>Q-Learning：Q-Learning是一种基于值的强化学习算法。它通过学习一个值函数（Q函数）来表示在给定状态下采取某个动作的累积奖励。Q-Learning使用贝尔曼方程更新Q值，并使用贪心策略来选择动作。</p>
+<p>SARSA：SARSA是另一种基于值的强化学习算法。它与Q-Learning类似，但不同之处在于它在学习和决策阶段都使用当前策略的动作来更新Q值。</p>
+<p>DQN（Deep Q Network）：DQN是一种深度强化学习算法，结合了深度神经网络和Q-Learning。它使用深度神经网络来近似Q函数，通过经验回放和目标网络来稳定训练。</p>
+<p>A3C（Asynchronous Advantage Actor-Critic）：A3C是一种基于策略的强化学习算法，它结合了Actor-Critic方法和异步训练。A3C使用多个智能体并行地训练，以提高样本效率。</p>
+<p>PPO（Proximal Policy Optimization）：PPO是一种基于策略的强化学习算法，它通过限制更新幅度来稳定训练。PPO在深度强化学习中表现出色，并被广泛应用于各种任务。</p>
+<p>TRPO（Trust Region Policy Optimization）：TRPO是另一种基于策略的强化学习算法，它使用限制步长的方法来保证更新策略时不会使性能变差。</p>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+
+    
+    <section class="article-copyright">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <path d="M14.5 9a3.5 4 0 1 0 0 6" />
+</svg>
+
+
+
+        <span>Licensed under CC BY-NC-SA 4.0</span>
+    </section>
+    </footer>
+
+
+    
+        <link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI&#43;WdtXRGWt2kTvGFasHpSy3SV"crossorigin="anonymous"
+            ><script 
+                src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG&#43;vnGctmUb0ZY0l8"crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"integrity="sha384-&#43;VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4&#43;/RRE05"crossorigin="anonymous"
+                defer
+                >
+            </script><script>
+    window.addEventListener("DOMContentLoaded", () => {
+	const mainArticleElement = document.querySelector(".main-article");
+        renderMathInElement(mainArticleElement, {
+            delimiters: [
+                { left: "$$", right: "$$", display: true },
+                { left: "$", right: "$", display: false },
+                { left: "\\(", right: "\\)", display: false },
+                { left: "\\[", right: "\\]", display: true }
+            ],
+            ignoredClasses: ["gist"]
+        });})
+</script>
+
+    
+</article>
+
+    
+
+    
+
+     
+    
+        
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2020 - 
+        
+        2025 Lee Sivan
+    </section>
+    
+    <section class="powerby">
+        Built with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> <br />
+        Theme <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.31.0">Stack</a></b> designed by <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a>
+    </section>
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/ts/main.3d43a4c340fa2445bd8771f06cfa9701c142ab408309ca21aa0c14c87ea44dc1.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+    </body>
+</html>

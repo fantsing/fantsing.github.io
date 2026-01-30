@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="Dice 在图像分割中，通常将图像转换为二值矩阵（前景为 1，背景为 0），此时公式可表示为逐像素的计算形式： $$ \\text{Dice} = \\frac{2\\sum_{i,j} P_{i,j} \\cdot G_{i,j}}{\\sum_{i,j} P_{i,j} + \\sum_{i,j} G_{i,j}} $$ 其中：\n$P_{i,j}$：预测图像在 $(i,j)$ 位置的像素值。 $G_{i,j}$：真实标注图像在 $(i,j)$ 位置的像素值。 $\\sum_{i,j}$：对图像所有像素进行求和。 在 validation_step 函数和自定义的 evaluate 脚本里的属于 hard dice，预测图是二值化的。而在训练时的是 soft dice，不把概率变成 0 和 1，而是直接用概率值去计算。dice 指标的实际含义就是预测和真值整体的重合率。且 dice 指标与交并比也有互相转化的公式。\nIoU 语义分割中最常用的度量标准是 IoU，也称为Jaccard系数。对于给定类别，IoU衡量预测分割掩码 (A) 与真实掩码 (B) 之间的重叠程度。IoU分数范围从0（无重叠）到1（完全重叠）。IoU分数越高，表示该类别的分割效果越好。\n通常会为每个类别单独计算 IoU，然后对所有类别取平均值，得到平均交并比 (mIoU)。这提供了一个单一的、全面的分数，用于衡量模型在整个数据集或图像上的性能。\nHD95 HD 代表预测偏离的最大值。但是往往个别的噪点不应该毁了整个模型的评价。因此选用HD95，砍掉前5%的最大距离。当我们调用 hd95 函数时，其实计算逻辑如下：首先，提取轮廓，先把实心的掩码（Mask）变成空心的圈（Contour），只保留边缘像素。然后计算距离图 (Distance Map)，对于预测轮廓上的每一个像素，计算它到真值轮廓最近像素的欧式距离。最后，把这些距离收集起来放在一个列表里，排序，取 95% 位置的数值。这里需要注意spacing，计算机算出来是偏离了n个像素，但是不同图的单位像素代表距离不同。\nP/R 其他指标 VOE：VOE = 1 – IoU，如果计算了IoU，就没必要再算。\nmIoU：mIoU 是所有类别 IoU 的平均值。\n">
+<title>nnUNet代码底层学习-量化指标</title>
+
+<link rel='canonical' href='http://localhost:1313/p/nnunet%E4%BB%A3%E7%A0%81%E5%BA%95%E5%B1%82%E5%AD%A6%E4%B9%A0-%E9%87%8F%E5%8C%96%E6%8C%87%E6%A0%87/'>
+
+<link rel="stylesheet" href="/scss/style.min.6a692fd055deae459f2a9767f57f3855ba80cafd5041317f24f7360f6ca47cdf.css"><meta property='og:title' content="nnUNet代码底层学习-量化指标">
+<meta property='og:description' content="Dice 在图像分割中，通常将图像转换为二值矩阵（前景为 1，背景为 0），此时公式可表示为逐像素的计算形式： $$ \\text{Dice} = \\frac{2\\sum_{i,j} P_{i,j} \\cdot G_{i,j}}{\\sum_{i,j} P_{i,j} + \\sum_{i,j} G_{i,j}} $$ 其中：\n$P_{i,j}$：预测图像在 $(i,j)$ 位置的像素值。 $G_{i,j}$：真实标注图像在 $(i,j)$ 位置的像素值。 $\\sum_{i,j}$：对图像所有像素进行求和。 在 validation_step 函数和自定义的 evaluate 脚本里的属于 hard dice，预测图是二值化的。而在训练时的是 soft dice，不把概率变成 0 和 1，而是直接用概率值去计算。dice 指标的实际含义就是预测和真值整体的重合率。且 dice 指标与交并比也有互相转化的公式。\nIoU 语义分割中最常用的度量标准是 IoU，也称为Jaccard系数。对于给定类别，IoU衡量预测分割掩码 (A) 与真实掩码 (B) 之间的重叠程度。IoU分数范围从0（无重叠）到1（完全重叠）。IoU分数越高，表示该类别的分割效果越好。\n通常会为每个类别单独计算 IoU，然后对所有类别取平均值，得到平均交并比 (mIoU)。这提供了一个单一的、全面的分数，用于衡量模型在整个数据集或图像上的性能。\nHD95 HD 代表预测偏离的最大值。但是往往个别的噪点不应该毁了整个模型的评价。因此选用HD95，砍掉前5%的最大距离。当我们调用 hd95 函数时，其实计算逻辑如下：首先，提取轮廓，先把实心的掩码（Mask）变成空心的圈（Contour），只保留边缘像素。然后计算距离图 (Distance Map)，对于预测轮廓上的每一个像素，计算它到真值轮廓最近像素的欧式距离。最后，把这些距离收集起来放在一个列表里，排序，取 95% 位置的数值。这里需要注意spacing，计算机算出来是偏离了n个像素，但是不同图的单位像素代表距离不同。\nP/R 其他指标 VOE：VOE = 1 – IoU，如果计算了IoU，就没必要再算。\nmIoU：mIoU 是所有类别 IoU 的平均值。\n">
+<meta property='og:url' content='http://localhost:1313/p/nnunet%E4%BB%A3%E7%A0%81%E5%BA%95%E5%B1%82%E5%AD%A6%E4%B9%A0-%E9%87%8F%E5%8C%96%E6%8C%87%E6%A0%87/'>
+<meta property='og:site_name' content='Lee Sivan&#39;s Blog'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:published_time' content='2025-12-06T13:40:43&#43;08:00'/><meta property='article:modified_time' content='2025-12-06T13:40:43&#43;08:00'/>
+<meta name="twitter:title" content="nnUNet代码底层学习-量化指标">
+<meta name="twitter:description" content="Dice 在图像分割中，通常将图像转换为二值矩阵（前景为 1，背景为 0），此时公式可表示为逐像素的计算形式： $$ \\text{Dice} = \\frac{2\\sum_{i,j} P_{i,j} \\cdot G_{i,j}}{\\sum_{i,j} P_{i,j} + \\sum_{i,j} G_{i,j}} $$ 其中：\n$P_{i,j}$：预测图像在 $(i,j)$ 位置的像素值。 $G_{i,j}$：真实标注图像在 $(i,j)$ 位置的像素值。 $\\sum_{i,j}$：对图像所有像素进行求和。 在 validation_step 函数和自定义的 evaluate 脚本里的属于 hard dice，预测图是二值化的。而在训练时的是 soft dice，不把概率变成 0 和 1，而是直接用概率值去计算。dice 指标的实际含义就是预测和真值整体的重合率。且 dice 指标与交并比也有互相转化的公式。\nIoU 语义分割中最常用的度量标准是 IoU，也称为Jaccard系数。对于给定类别，IoU衡量预测分割掩码 (A) 与真实掩码 (B) 之间的重叠程度。IoU分数范围从0（无重叠）到1（完全重叠）。IoU分数越高，表示该类别的分割效果越好。\n通常会为每个类别单独计算 IoU，然后对所有类别取平均值，得到平均交并比 (mIoU)。这提供了一个单一的、全面的分数，用于衡量模型在整个数据集或图像上的性能。\nHD95 HD 代表预测偏离的最大值。但是往往个别的噪点不应该毁了整个模型的评价。因此选用HD95，砍掉前5%的最大距离。当我们调用 hd95 函数时，其实计算逻辑如下：首先，提取轮廓，先把实心的掩码（Mask）变成空心的圈（Contour），只保留边缘像素。然后计算距离图 (Distance Map)，对于预测轮廓上的每一个像素，计算它到真值轮廓最近像素的欧式距离。最后，把这些距离收集起来放在一个列表里，排序，取 95% 位置的数值。这里需要注意spacing，计算机算出来是偏离了n个像素，但是不同图的单位像素代表距离不同。\nP/R 其他指标 VOE：VOE = 1 – IoU，如果计算了IoU，就没必要再算。\nmIoU：mIoU 是所有类别 IoU 的平均值。\n">
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="Toggle Menu">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/avatar_hu_c14aa3b58f97651b.png" width="300"
+                            height="311" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">Lee Sivan&#39;s Blog</a></h1>
+            <h2 class="site-description"></h2>
+        </div>
+    </header><ol class="menu-social">
+            
+                <li>
+                    <a 
+                        href='15542277303@163.com'
+                        target="_blank"
+                        title="Email"
+                        rel="me"
+                    >
+                        
+                        
+                            <?xml version="1.0" encoding="utf-8"?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+<svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M4 7.00005L10.2 11.65C11.2667 12.45 12.7333 12.45 13.8 11.65L20 7" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="3" y="5" width="18" height="14" rx="2" stroke="#000000" stroke-width="2" stroke-linecap="round"/>
+</svg>
+                        
+                    </a>
+                </li>
+            
+                <li>
+                    <a 
+                        href='https://github.com/fantsing'
+                        target="_blank"
+                        title="GitHub"
+                        rel="me"
+                    >
+                        
+                        
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5" />
+</svg>
+
+
+
+                        
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>Home</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/about/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>About</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>Archives</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>Search</span>
+            </a>
+        </li>
+        
+        <li class="menu-bottom-section">
+            <ol class="menu">
+
+                
+                    <li id="dark-mode-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <span>Dark Mode</span>
+                    </li>
+                
+            </ol>
+        </li>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">Table of contents</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li><a href="#dice">Dice</a></li>
+    <li><a href="#iou">IoU</a></li>
+    <li><a href="#hd95">HD95</a></li>
+    <li><a href="#pr">P/R</a></li>
+    <li><a href="#其他指标">其他指标</a></li>
+    <li><a href="#evaluate-脚本计算指标">evaluate 脚本计算指标</a></li>
+    <li><a href="#task_04项目的指标结果">Task_04项目的指标结果</a></li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+            <main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/p/nnunet%E4%BB%A3%E7%A0%81%E5%BA%95%E5%B1%82%E5%AD%A6%E4%B9%A0-%E9%87%8F%E5%8C%96%E6%8C%87%E6%A0%87/">nnUNet代码底层学习-量化指标</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">Dec 06, 2025</time>
+            </div>
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+                <time class="article-time--reading">
+                    3 minute read
+                </time>
+            </div>
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <h2 id="dice">Dice
+</h2><p>在图像分割中，通常将图像转换为二值矩阵（前景为 1，背景为 0），此时公式可表示为逐像素的计算形式：
+</p>
+$$
+\text{Dice} = \frac{2\sum_{i,j} P_{i,j} \cdot G_{i,j}}{\sum_{i,j} P_{i,j} + \sum_{i,j} G_{i,j}}
+$$<p>
+其中：</p>
+<ul>
+<li>$P_{i,j}$：预测图像在 $(i,j)$ 位置的像素值。</li>
+<li>$G_{i,j}$：真实标注图像在 $(i,j)$ 位置的像素值。</li>
+<li>$\sum_{i,j}$：对图像所有像素进行求和。</li>
+</ul>
+<p>在 validation_step 函数和自定义的 evaluate 脚本里的属于 hard dice，预测图是二值化的。而在训练时的是 soft dice，不把概率变成 0 和 1，而是直接用概率值去计算。dice 指标的实际含义就是预测和真值整体的重合率。且 dice 指标与交并比也有互相转化的公式。</p>
+<h2 id="iou">IoU
+</h2><p><img src="/images/45.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="45"
+	
+	
+></p>
+<p>语义分割中最常用的度量标准是 IoU，也称为Jaccard系数。对于给定类别，IoU衡量预测分割掩码 (A) 与真实掩码 (B) 之间的重叠程度。IoU分数范围从0（无重叠）到1（完全重叠）。IoU分数越高，表示该类别的分割效果越好。</p>
+<p>通常会为每个类别单独计算 IoU，然后对所有类别取平均值，得到平均交并比 (mIoU)。这提供了一个单一的、全面的分数，用于衡量模型在整个数据集或图像上的性能。</p>
+<h2 id="hd95">HD95
+</h2><p><img src="/images/46.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="46"
+	
+	
+></p>
+<p>HD 代表预测偏离的最大值。但是往往个别的噪点不应该毁了整个模型的评价。因此选用HD95，砍掉前5%的最大距离。当我们调用 hd95 函数时，其实计算逻辑如下：首先，提取轮廓，先把实心的掩码（Mask）变成空心的圈（Contour），只保留边缘像素。然后计算距离图 (Distance Map)，对于预测轮廓上的每一个像素，计算它到真值轮廓最近像素的欧式距离。最后，把这些距离收集起来放在一个列表里，排序，取 95% 位置的数值。这里需要注意spacing，计算机算出来是偏离了n个像素，但是不同图的单位像素代表距离不同。</p>
+<h2 id="pr">P/R
+</h2><p><img src="/images/47.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="47"
+	
+	
+></p>
+<h2 id="其他指标">其他指标
+</h2><p>VOE：VOE = 1 – IoU，如果计算了IoU，就没必要再算。</p>
+<p>mIoU：mIoU 是所有类别 IoU 的平均值。</p>
+<p>Hausdorff：HD 不稳定。只要有一个噪点，HD 就会变得无限大，不能反映真实性能。</p>
+<p>Surface Dice (NSD)：太麻烦且非必须。需要设定一个阈值（比如 1mm 容差）。除非打特定的比赛，否则用 Dice + HD95 代替足够说明表面情况。</p>
+<p>Balanced Accuracy &amp; Kappa：过时，深度学习分割领域现在很少用这两个。</p>
+<p>RVD (Relative Volume Difference)：改为 Volume Error。单纯的 RVD 有正负，平均时会抵消。我们计算体积偏差绝对值更好。</p>
+<h2 id="evaluate-脚本计算指标">evaluate 脚本计算指标
+</h2><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">  1
+</span><span class="lnt">  2
+</span><span class="lnt">  3
+</span><span class="lnt">  4
+</span><span class="lnt">  5
+</span><span class="lnt">  6
+</span><span class="lnt">  7
+</span><span class="lnt">  8
+</span><span class="lnt">  9
+</span><span class="lnt"> 10
+</span><span class="lnt"> 11
+</span><span class="lnt"> 12
+</span><span class="lnt"> 13
+</span><span class="lnt"> 14
+</span><span class="lnt"> 15
+</span><span class="lnt"> 16
+</span><span class="lnt"> 17
+</span><span class="lnt"> 18
+</span><span class="lnt"> 19
+</span><span class="lnt"> 20
+</span><span class="lnt"> 21
+</span><span class="lnt"> 22
+</span><span class="lnt"> 23
+</span><span class="lnt"> 24
+</span><span class="lnt"> 25
+</span><span class="lnt"> 26
+</span><span class="lnt"> 27
+</span><span class="lnt"> 28
+</span><span class="lnt"> 29
+</span><span class="lnt"> 30
+</span><span class="lnt"> 31
+</span><span class="lnt"> 32
+</span><span class="lnt"> 33
+</span><span class="lnt"> 34
+</span><span class="lnt"> 35
+</span><span class="lnt"> 36
+</span><span class="lnt"> 37
+</span><span class="lnt"> 38
+</span><span class="lnt"> 39
+</span><span class="lnt"> 40
+</span><span class="lnt"> 41
+</span><span class="lnt"> 42
+</span><span class="lnt"> 43
+</span><span class="lnt"> 44
+</span><span class="lnt"> 45
+</span><span class="lnt"> 46
+</span><span class="lnt"> 47
+</span><span class="lnt"> 48
+</span><span class="lnt"> 49
+</span><span class="lnt"> 50
+</span><span class="lnt"> 51
+</span><span class="lnt"> 52
+</span><span class="lnt"> 53
+</span><span class="lnt"> 54
+</span><span class="lnt"> 55
+</span><span class="lnt"> 56
+</span><span class="lnt"> 57
+</span><span class="lnt"> 58
+</span><span class="lnt"> 59
+</span><span class="lnt"> 60
+</span><span class="lnt"> 61
+</span><span class="lnt"> 62
+</span><span class="lnt"> 63
+</span><span class="lnt"> 64
+</span><span class="lnt"> 65
+</span><span class="lnt"> 66
+</span><span class="lnt"> 67
+</span><span class="lnt"> 68
+</span><span class="lnt"> 69
+</span><span class="lnt"> 70
+</span><span class="lnt"> 71
+</span><span class="lnt"> 72
+</span><span class="lnt"> 73
+</span><span class="lnt"> 74
+</span><span class="lnt"> 75
+</span><span class="lnt"> 76
+</span><span class="lnt"> 77
+</span><span class="lnt"> 78
+</span><span class="lnt"> 79
+</span><span class="lnt"> 80
+</span><span class="lnt"> 81
+</span><span class="lnt"> 82
+</span><span class="lnt"> 83
+</span><span class="lnt"> 84
+</span><span class="lnt"> 85
+</span><span class="lnt"> 86
+</span><span class="lnt"> 87
+</span><span class="lnt"> 88
+</span><span class="lnt"> 89
+</span><span class="lnt"> 90
+</span><span class="lnt"> 91
+</span><span class="lnt"> 92
+</span><span class="lnt"> 93
+</span><span class="lnt"> 94
+</span><span class="lnt"> 95
+</span><span class="lnt"> 96
+</span><span class="lnt"> 97
+</span><span class="lnt"> 98
+</span><span class="lnt"> 99
+</span><span class="lnt">100
+</span><span class="lnt">101
+</span><span class="lnt">102
+</span><span class="lnt">103
+</span><span class="lnt">104
+</span><span class="lnt">105
+</span><span class="lnt">106
+</span><span class="lnt">107
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">os</span>
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+</span></span><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+</span></span><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">medpy.metric.binary</span> <span class="kn">import</span> <span class="n">hd95</span><span class="p">,</span> <span class="n">asd</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># ================= 配置区域 =================</span>
+</span></span><span class="line"><span class="cl"><span class="n">GT_FOLDER</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;/root/nnUNet/nnUNet_raw/Dataset004_Hippocampus/labelsTr&#39;</span>
+</span></span><span class="line"><span class="cl"><span class="n">PRED_FOLDER</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;/root/nnUNet/nnUNet_results/Dataset004_Hippocampus/nnUNetTrainer__nnUNetPlans__2d/fold_4/validation&#39;</span>
+</span></span><span class="line"><span class="cl"><span class="n">OUTPUT_CSV</span> <span class="o">=</span> <span class="s1">&#39;task04_comprehensive_metrics.csv&#39;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 类别定义</span>
+</span></span><span class="line"><span class="cl"><span class="n">CLASS_NAMES</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="s2">&#34;Anterior&#34;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s2">&#34;Posterior&#34;</span><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># ===========================================</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">calculate_metrics</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">GT_FOLDER</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">PRED_FOLDER</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34; 路径错误，请检查文件夹路径配置！&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">pred_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">PRED_FOLDER</span><span class="p">)</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.nii.gz&#39;</span><span class="p">)]</span>
+</span></span><span class="line"><span class="cl">    <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34; 开始【·指标计算 (共 </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">pred_files</span><span class="p">)</span><span class="si">}</span><span class="s2"> 个样本)...&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">pred_files</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">        <span class="n">gt_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GT_FOLDER</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">pred_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PRED_FOLDER</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">gt_path</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">            <span class="k">continue</span>
+</span></span><span class="line"><span class="cl">            
+</span></span><span class="line"><span class="cl">        <span class="c1"># 1. 加载数据</span>
+</span></span><span class="line"><span class="cl">        <span class="n">gt_obj</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">gt_path</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">pred_obj</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">pred_path</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">spacing</span> <span class="o">=</span> <span class="n">gt_obj</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">get_zooms</span><span class="p">()[:</span><span class="mi">3</span><span class="p">]</span> 
+</span></span><span class="line"><span class="cl">        
+</span></span><span class="line"><span class="cl">        <span class="n">gt_data</span> <span class="o">=</span> <span class="n">gt_obj</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">pred_data</span> <span class="o">=</span> <span class="n">pred_obj</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">file_metrics</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;filename&#39;</span><span class="p">:</span> <span class="n">filename</span><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="n">class_id</span><span class="p">,</span> <span class="n">class_name</span> <span class="ow">in</span> <span class="n">CLASS_NAMES</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">            <span class="n">gt_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">gt_data</span> <span class="o">==</span> <span class="n">class_id</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="n">pred_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">pred_data</span> <span class="o">==</span> <span class="n">class_id</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">            <span class="c1"># --- 基础统计 (混淆矩阵) ---</span>
+</span></span><span class="line"><span class="cl">            <span class="n">tp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">gt_mask</span> <span class="o">&amp;</span> <span class="n">pred_mask</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="n">fp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="o">~</span><span class="n">gt_mask</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">pred_mask</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="n">fn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">gt_mask</span> <span class="o">&amp;</span> <span class="p">(</span><span class="o">~</span><span class="n">pred_mask</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">            
+</span></span><span class="line"><span class="cl">            <span class="c1"># --- 1. Overlap Metrics (重叠类) ---</span>
+</span></span><span class="line"><span class="cl">            <span class="c1"># Dice = 2TP / (2TP + FP + FN)</span>
+</span></span><span class="line"><span class="cl">            <span class="n">smooth</span> <span class="o">=</span> <span class="mf">1e-5</span>
+</span></span><span class="line"><span class="cl">            <span class="n">dice</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">tp</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">tp</span> <span class="o">+</span> <span class="n">fp</span> <span class="o">+</span> <span class="n">fn</span> <span class="o">+</span> <span class="n">smooth</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            
+</span></span><span class="line"><span class="cl">            <span class="c1"># IoU = TP / (TP + FP + FN)</span>
+</span></span><span class="line"><span class="cl">            <span class="n">iou</span> <span class="o">=</span> <span class="n">tp</span> <span class="o">/</span> <span class="p">(</span><span class="n">tp</span> <span class="o">+</span> <span class="n">fp</span> <span class="o">+</span> <span class="n">fn</span> <span class="o">+</span> <span class="n">smooth</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">            <span class="c1"># --- 2. Statistical Metrics (统计类) ---</span>
+</span></span><span class="line"><span class="cl">            <span class="c1"># Precision = TP / (TP + FP)  (查准率)</span>
+</span></span><span class="line"><span class="cl">            <span class="k">if</span> <span class="p">(</span><span class="n">tp</span> <span class="o">+</span> <span class="n">fp</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">                <span class="n">precision</span> <span class="o">=</span> <span class="n">tp</span> <span class="o">/</span> <span class="p">(</span><span class="n">tp</span> <span class="o">+</span> <span class="n">fp</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="k">else</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">                <span class="n">precision</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">gt_mask</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.0</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">            <span class="c1"># Sensitivity (Recall) = TP / (TP + FN) (查全率/敏感度)</span>
+</span></span><span class="line"><span class="cl">            <span class="k">if</span> <span class="p">(</span><span class="n">tp</span> <span class="o">+</span> <span class="n">fn</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">                <span class="n">sensitivity</span> <span class="o">=</span> <span class="n">tp</span> <span class="o">/</span> <span class="p">(</span><span class="n">tp</span> <span class="o">+</span> <span class="n">fn</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="k">else</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">                <span class="n">sensitivity</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="c1"># 如果真值本来就是空的，且没预测出来，算对</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">            <span class="c1"># --- 3. Distance Metrics (距离类) ---</span>
+</span></span><span class="line"><span class="cl">            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">gt_mask</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">pred_mask</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">                <span class="k">try</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">hd95_val</span> <span class="o">=</span> <span class="n">hd95</span><span class="p">(</span><span class="n">pred_mask</span><span class="p">,</span> <span class="n">gt_mask</span><span class="p">,</span> <span class="n">voxelspacing</span><span class="o">=</span><span class="n">spacing</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">asd_val</span> <span class="o">=</span> <span class="n">asd</span><span class="p">(</span><span class="n">pred_mask</span><span class="p">,</span> <span class="n">gt_mask</span><span class="p">,</span> <span class="n">voxelspacing</span><span class="o">=</span><span class="n">spacing</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">                <span class="k">except</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">hd95_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">asd_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+</span></span><span class="line"><span class="cl">            <span class="k">else</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">                <span class="n">hd95_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+</span></span><span class="line"><span class="cl">                <span class="n">asd_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">            <span class="n">file_metrics</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s1">_Dice&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dice</span>
+</span></span><span class="line"><span class="cl">            <span class="n">file_metrics</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s1">_IoU&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">iou</span>
+</span></span><span class="line"><span class="cl">            <span class="n">file_metrics</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s1">_Precision&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">precision</span>
+</span></span><span class="line"><span class="cl">            <span class="n">file_metrics</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s1">_Sensitivity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sensitivity</span>
+</span></span><span class="line"><span class="cl">            <span class="n">file_metrics</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s1">_HD95&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hd95_val</span>
+</span></span><span class="line"><span class="cl">            <span class="n">file_metrics</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s1">_ASD&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">asd_val</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">file_metrics</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">OUTPUT_CSV</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;</span><span class="se">\n</span><span class="s2">&#34;</span> <span class="o">+</span> <span class="s2">&#34;=&#34;</span><span class="o">*</span><span class="mi">40</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="s2">&#34; 评估完成！&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;各指标平均值 (Mean):&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">numeric_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;</span><span class="se">\n</span><span class="s2"> 详细报表: </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">OUTPUT_CSV</span><span class="p">)</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;=&#34;</span><span class="o">*</span><span class="mi">40</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">calculate_metrics</span><span class="p">()</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="task_04项目的指标结果">Task_04项目的指标结果
+</h2><p><img src="/images/48.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="48"
+	
+	
+></p>
+<p>在 Task04 海马体数据集上，Dice 达到 0.88+ (前部) 和 0.86+ (后部) 是顶级水平。通常这个任务上的 baseline 就在 0.86 - 0.88 之间。</p>
+<p>Anterior 的所有指标（Dice, IoU, HD95）都优于 Posterior 。</p>
+<p>Anterior Dice: 0.8875 &gt; Posterior Dice: 0.8638</p>
+<p>Anterior HD95: 1.28mm &lt; Posterior HD95: 1.40mm</p>
+<p>海马体的头部 (Anterior) 结构比较宽大、特征明显；而尾部 (Posterior) 逐渐变细，边界模糊，且容易受到周围组织的干扰。模型在难分区域表现稍弱，证明它没有过拟合，而是真实反映了数据的难度。</p>
+<p>对比 Precision (查准率) 和 Sensitivity (查全率)。</p>
+<p>Anterior: Precision (0.8973) &gt; Sensitivity (0.8809)</p>
+<p>Posterior: Precision (0.8713) &gt; Sensitivity (0.8608)</p>
+<p>Precision 高意味着：模型预测是海马体的地方，几乎都是对的（误报少）。</p>
+<p>Sensitivity 稍低意味着：模型漏掉了一小部分真实的边缘。</p>
+<p>ASD (0.45mm)：意味着平均误差只有 0.45 mm。Task04 的图像分辨率大概是 1mm^3。平均误差不到半个像素。</p>
+<p><img src="/images/49.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="49"
+	
+	
+></p>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+
+    
+    <section class="article-copyright">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <path d="M14.5 9a3.5 4 0 1 0 0 6" />
+</svg>
+
+
+
+        <span>Licensed under CC BY-NC-SA 4.0</span>
+    </section>
+    </footer>
+
+
+    
+        <link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI&#43;WdtXRGWt2kTvGFasHpSy3SV"crossorigin="anonymous"
+            ><script 
+                src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG&#43;vnGctmUb0ZY0l8"crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"integrity="sha384-&#43;VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4&#43;/RRE05"crossorigin="anonymous"
+                defer
+                >
+            </script><script>
+    window.addEventListener("DOMContentLoaded", () => {
+	const mainArticleElement = document.querySelector(".main-article");
+        renderMathInElement(mainArticleElement, {
+            delimiters: [
+                { left: "$$", right: "$$", display: true },
+                { left: "$", right: "$", display: false },
+                { left: "\\(", right: "\\)", display: false },
+                { left: "\\[", right: "\\]", display: true }
+            ],
+            ignoredClasses: ["gist"]
+        });})
+</script>
+
+    
+</article>
+
+    
+
+    
+
+     
+    
+        
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2020 - 
+        
+        2025 Lee Sivan
+    </section>
+    
+    <section class="powerby">
+        Built with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> <br />
+        Theme <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.31.0">Stack</a></b> designed by <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a>
+    </section>
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/ts/main.3d43a4c340fa2445bd8771f06cfa9701c142ab408309ca21aa0c14c87ea44dc1.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+    </body>
+</html>
