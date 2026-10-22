@@ -22,7 +22,7 @@ languages:
         weight: 1                       # 权重（排序用）
         params:
             sidebar:
-                subtitle: 机器学习 · 论文复现 · 技术笔记  # 侧边栏副标题
+                subtitle: 技术笔记  # 侧边栏副标题
 
 
 # 第三方服务配置
@@ -63,7 +63,7 @@ params:
     # 侧边栏设置
     sidebar:
         emoji:                       # 表情图标
-        subtitle: 机器学习 · 论文复现 · 技术笔记  # 副标题
+        subtitle: 技术笔记  # 副标题
         avatar:
             enabled: true              # 是否显示头像
             local: true                # 是否使用本地图片
