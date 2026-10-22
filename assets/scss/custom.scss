@@ -105,8 +105,6 @@ mark { background: #f9e7a4; color: #3b321a; border-radius: 3px; padding: 0 2px; 
 .mobile-toc summary { cursor: pointer; font-weight: 600; }
 .mobile-toc nav { max-height: 55vh; overflow-y: auto; margin-top: 12px; }
 .mobile-toc ol { padding-left: 22px; line-height: 1.9; }
-.widget--toc.toc-unnumbered #TableOfContents ol li a:first-of-type::before { content: none; counter-increment: none; }
-.mobile-toc.toc-unnumbered ol { list-style: none; }
 .skip-link { position: fixed; left: 20px; top: -100px; padding: 14px 20px; background: var(--accent-color); color: var(--accent-color-text); z-index: 1000; }
 .skip-link:focus { top: 12px; }
 .back-to-top { position: fixed; right: 22px; bottom: 22px; z-index: 10; width: 44px; height: 44px; border: 1px solid var(--card-separator-color); border-radius: 12px; background: var(--card-background); color: var(--accent-color); box-shadow: var(--shadow-l2); cursor: pointer; font-size: 2rem; }

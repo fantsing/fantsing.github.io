@@ -5,7 +5,6 @@ slug = 'cerebral-hemodynamics-neural-operators'
 categories = ["科学机器学习"]
 tags = ["血流动力学"]
 description = "使用 GNOT 与 VANO 复现稀疏数据下的脑血流动力学重建。"
-tocNumbering = false
 +++
 
 ## 脑血流重建论文复现汇报与方法分析

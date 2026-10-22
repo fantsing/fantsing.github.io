@@ -6,7 +6,6 @@ description = '脑血流重建论文复现的输出缺口、问题台账、参�
 hidden = true
 toc = true
 math = true
-tocNumbering = false
 +++
 
 ## 脑血流论文复现补充材料
