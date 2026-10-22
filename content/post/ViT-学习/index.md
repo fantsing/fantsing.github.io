@@ -1,6 +1,9 @@
 +++
 date = '2025-11-16T13:40:43+08:00'
 title = 'ViT-学习'
+categories = ["计算机视觉"]
+tags = ["Transformer", "网络架构"]
+description = "Transformer、Vision Transformer 与 Swin Transformer 的阅读笔记。"
 
 +++
 

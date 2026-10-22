@@ -1,6 +1,9 @@
 +++
 date = '2025-11-04T13:40:43+08:00'
 title = 'U-Net学习'
+categories = ["计算机视觉"]
+tags = ["语义分割", "网络架构"]
+description = "理解 U-Net 的编码器、解码器与跳跃连接。"
 
 +++
 
@@ -10,7 +13,7 @@ title = 'U-Net学习'
 
 其实就是FCN的改良版本，丢失几个像素信息是正常的。
 
-![34](images/34.png)
+![34](/images/34.png)
 
 ## Encoder
 
@@ -29,7 +32,7 @@ title = 'U-Net学习'
 
 编码器最终输出的高维特征（比如图中最后阶段的 `28×28×512` 特征图）会传递给解码器（Decoder，图中右侧部分），解码器通过上采样和特征融合，逐步恢复图像尺寸，最终输出分割图（output segmentation map）。
 
-![35](images/35.png)
+![35](/images/35.png)
 
 这张图讲解的是像素级损失权重的设计，用于解决语义分割中“类别不平衡”和“边界像素难分割”的问题。
 
@@ -59,11 +62,11 @@ title = 'U-Net学习'
 
 ## PointRend模型
 
-![36](images/36.png)
+![36](/images/36.png)
 
-![37](images/37.png)
+![37](/images/37.png)
 
 ## TransUNet模型
 
-![38](images/38.png)
+![38](/images/38.png)
 

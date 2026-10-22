@@ -1,0 +1,9 @@
+{{ define "main" }}
+<section class="not-found-card page-intro">
+    <p class="eyebrow">404 · PAGE NOT FOUND</p>
+    <h1>这篇笔记暂时找不到了</h1>
+    <p>链接可能已变更，或者地址输入有误。</p>
+    <div class="intro-links"><a class="primary-link" href="{{ "/" | relURL }}">返回首页</a><a href="{{ "search/" | relURL }}">搜索文章 →</a></div>
+</section>
+{{ partial "footer/footer" . }}
+{{ end }}

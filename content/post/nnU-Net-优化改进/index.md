@@ -1,6 +1,9 @@
 +++
 date = '2025-12-21T13:40:43+08:00'
 title = 'nnU-Net-优化改进'
+categories = ["医学图像"]
+tags = ["nnU-Net", "Mamba"]
+description = "探索卷积与 Mamba 的混合模块，记录医学图像分割实验思路。"
 
 +++
 

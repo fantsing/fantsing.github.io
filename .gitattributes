@@ -1,0 +1,2 @@
+# Preserve vendor bytes: the site uses Subresource Integrity hashes.
+static/vendor/** -text -diff -whitespace linguist-vendored=true

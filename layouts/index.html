@@ -1,0 +1,26 @@
+{{ define "main" }}
+    {{ $pages := where .Site.RegularPages "Type" "in" .Site.Params.mainSections }}
+    {{ $filtered := where $pages "Params.hidden" "!=" true }}
+    {{ $pag := .Paginate $filtered }}
+    {{ if eq $pag.PageNumber 1 }}
+    <section class="home-intro" aria-labelledby="intro-title">
+        <p class="eyebrow">LEARN · BUILD · SHARE</p>
+        <h1 id="intro-title">把知识写下来，<br>让探索继续。</h1>
+        <p class="intro-description">记录机器学习的原理、论文复现的过程，<br class="desktop-break">以及从想法到实践的每一步。</p>
+        <div class="intro-links">
+            <a class="primary-link" href="{{ "archives/" | relURL }}">浏览全部文章 <span aria-hidden="true">↗</span></a>
+            <a href="{{ "index.xml" | relURL }}">订阅 RSS <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="intro-stats">{{ len $filtered }} 篇笔记 <span aria-hidden="true">/</span> {{ len .Site.Taxonomies.categories }} 个主题 <span aria-hidden="true">/</span> 持续学习中</div>
+    </section>
+    {{ end }}
+    <div class="section-heading"><h2>学习笔记</h2><span>按发布时间排序{{ if gt $pag.PageNumber 1 }} · 第 {{ $pag.PageNumber }} 页{{ end }}</span></div>
+    <section class="article-list" aria-label="文章列表">
+        {{ range $pag.Pages }}{{ partial "article-list/default" . }}{{ end }}
+    </section>
+    {{ partial "pagination.html" . }}
+    {{ partial "footer/footer" . }}
+{{ end }}
+{{ define "right-sidebar" }}
+    {{ partial "sidebar/right.html" (dict "Context" . "Scope" "homepage") }}
+{{ end }}

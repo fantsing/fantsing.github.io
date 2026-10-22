@@ -1,6 +1,9 @@
 +++
 date = '2026-01-15T13:52:23+08:00'
 title = 'CS336-大模型概述与tokenization'
+categories = ["大模型与应用"]
+tags = ["CS336", "Tokenizer"]
+description = "CS336 学习笔记：大模型全貌、训练效率与文本分词。"
 
 +++
 

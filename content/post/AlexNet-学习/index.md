@@ -1,6 +1,9 @@
 +++
 date = '2025-10-30T13:40:43+08:00'
 title = 'AlexNet学习'
+categories = ["计算机视觉"]
+tags = ["CNN", "网络架构"]
+description = "从卷积计算到 AlexNet，理解经典卷积网络的设计。"
 
 +++
 

@@ -1,6 +1,9 @@
 +++
 date = '2025-11-22T13:40:43+08:00'
 title = 'nnUNet代码底层学习-预处理'
+categories = ["医学图像"]
+tags = ["nnU-Net", "源码阅读"]
+description = "从 spacing、裁剪到归一化，拆解 nnU-Net 的数据预处理。"
 
 +++
 
@@ -198,6 +201,6 @@ class RescaleTo01Normalization(ImageNormalization)...
 class RGBTo01Normalization(ImageNormalization)...
 ```
 
-![41](images/41.png)
+![41](/images/41.png)
 
 这部分就是归一化函数的类定义，具体情况具体分析

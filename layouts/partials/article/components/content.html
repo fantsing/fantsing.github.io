@@ -1,0 +1,9 @@
+{{ if and (.Scratch.Get "TOCEnabled") (gt (len .TableOfContents) 40) }}
+<details class="mobile-toc">
+    <summary>本页目录</summary>
+    {{ .TableOfContents | replaceRE `id="TableOfContents"` `id="mobile-table-of-contents"` | safeHTML }}
+</details>
+{{ end }}
+<section class="article-content">
+    {{ .Content }}
+</section>

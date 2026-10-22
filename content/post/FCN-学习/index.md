@@ -1,6 +1,9 @@
 +++
 date = '2025-11-04T13:40:43+08:00'
 title = 'FCN学习'
+categories = ["计算机视觉"]
+tags = ["语义分割", "CNN"]
+description = "从图像分类走向像素级预测，学习全卷积网络与语义分割。"
 
 +++
 
@@ -10,15 +13,15 @@ title = 'FCN学习'
 
 需要用到边缘信息的时候，我们就要用语义分割；当我们只关注类别的时候，那就是目标检测。语义分割是一种像素级别的分类。
 
-![25](images/25.png)
+![25](/images/25.png)
 
-![26](images/26.png)
+![26](/images/26.png)
 
 Fully Convolutional Networks for Semantic Segmentation (FCN)把全连接层替换为卷积层，因此被称为“全卷积”网络，这个改变使得网络可以接受任意尺寸的输入
 
 ## FCN
 
-![27](images/27.png)
+![27](/images/27.png)
 
 上采样，损失了一些不重要的信息，保留边缘信息。从而实现了图片输入-图片输出。
 
@@ -26,21 +29,21 @@ Fully Convolutional Networks for Semantic Segmentation (FCN)把全连接层替�
 
 下采样与上采样示意如图，上采样实际就是用到了转置卷积（反卷积）来增大输入高宽，这个操作之前的blog提到过。
 
-![28](images/28.png)
+![28](/images/28.png)
 
 插值法扩充矩阵，最近邻插值or线性插值。当然，分割问题一般都是最近邻插值。
 
-![29](images/29.png)
+![29](/images/29.png)
 
-![30](images/30.png)
+![30](/images/30.png)
 
 N是batch_size，C是类别，H是高，W是宽。
 
 ## 跳级连接
 
-![31](images/31.png)
+![31](/images/31.png)
 
-![32](images/32.png)
+![32](/images/32.png)
 
 1. 像素准确率（pixel accuracy），所有被正确分类的像素数量除以总像素数量。
 
@@ -59,7 +62,7 @@ N是batch_size，C是类别，H是高，W是宽。
 
 - 分子$n_{ii}$是**预测和真实都为类别i的像素数（交集）**；
 - 分母$t_i + \sum_j n_{ji} - n_{ii}$是**预测为类别i的像素数 + 真实为类别i的像素数 - 交集（并集）**；
-- 先计算每个类别i的$\frac{交集}{并集}$，再对所有类别取平均。
+- 先计算每个类别i的$\frac{\text{交集}}{\text{并集}}$，再对所有类别取平均。
 - 特点：是语义分割任务中最具说服力的指标，能有效衡量“预测区域的准确性和完整性”。
 
-![33](images/33.png)
+![33](/images/33.png)

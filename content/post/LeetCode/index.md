@@ -1,6 +1,9 @@
 +++
 date = '2025-12-21T13:40:43+08:00'
 title = 'LeetCode'
+categories = ["算法与基础"]
+tags = ["Python", "算法"]
+description = "Python 基础、常用数据结构与算法练习笔记。"
 
 +++
 

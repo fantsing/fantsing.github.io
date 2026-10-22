@@ -1,6 +1,9 @@
 +++
 date = '2026-01-30T13:40:43+08:00'
 title = 'FNO-学习'
+categories = ["科学机器学习"]
+tags = ["FNO", "PDE"]
+description = "傅里叶神经算子的学习资料、数学原理与实现笔记。"
 
 +++
 

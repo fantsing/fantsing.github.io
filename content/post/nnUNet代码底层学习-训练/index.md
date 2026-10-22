@@ -1,6 +1,9 @@
 +++
 date = '2025-11-28T13:40:43+08:00'
 title = 'nnUNet代码底层学习-训练'
+categories = ["医学图像"]
+tags = ["nnU-Net", "源码阅读"]
+description = "沿着训练入口阅读 nnU-Net，理解训练配置与执行流程。"
 
 +++
 
@@ -10,7 +13,7 @@ title = 'nnUNet代码底层学习-训练'
 
 找到 `run_training_entry()` 路由进入函数，print 一下配置，如下图所示。
 
-![44](images/44.png)
+![44](/images/44.png)
 
 路由进`run_training()` 函数，找到处理折数参数的代码。
 

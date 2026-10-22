@@ -1,0 +1,4 @@
+{{ $description := .Description }}
+{{ if and (not $description) .IsPage }}{{ $description = .Summary | plainify }}{{ end }}
+{{ if not $description }}{{ $description = .Site.Params.description | default .Site.Params.sidebar.subtitle }}{{ end }}
+{{ return ($description | plainify | replaceRE `\s+` " " | strings.TrimSpace | truncate 180) }}

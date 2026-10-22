@@ -1,6 +1,9 @@
 +++
 date = '2026-01-24T13:40:43+08:00'
 title = 'RAG与Agent开发'
+categories = ["大模型与应用"]
+tags = ["RAG", "Agent"]
+description = "从 Ollama 和模型调用开始，记录 RAG 与 Agent 开发实践。"
 
 +++
 
@@ -331,31 +334,32 @@ RAG的核心价值：
 
 ### ChatPromptTemplate
 
+### Chain的基础使用
 
+### | 方法
 
+### 简单理解Runnable接口
 
+### StrOutpotParser字符串输出解析器
 
+### JsonOutputParser和多模型执行链
 
+### 自定义函数加入链
 
+### Memory临时会话记忆
 
+### Memory长期会话记忆
 
+### CSVLoader
 
+### JSONLoader
 
+### TextLoader和文档分割器
 
+### PyPDFLoader
 
+### Vector stores 向量存储
 
+### 检索向量并构建提示词
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+### RunnablePassthrough

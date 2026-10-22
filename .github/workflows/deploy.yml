@@ -27,11 +27,14 @@ jobs:
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v2
         with:
-          hugo-version: 'latest'
-          # extended: true       # 若主题需扩展版，取消注释
+          hugo-version: '0.151.0'
+          extended: true
 
       - name: Build with Hugo
-        run: hugo --minify --gc   # 生成优化后的静态文件
+        run: hugo --minify --gc --cleanDestinationDir --panicOnWarning --printPathWarnings   # 生成优化后的静态文件
+
+      - name: Validate generated site
+        run: python3 scripts/check_site.py public
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

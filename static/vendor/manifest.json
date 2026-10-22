@@ -1,0 +1,16 @@
+[
+  {
+    "name": "katex",
+    "version": "0.16.9",
+    "source": "https://registry.npmjs.org/katex/-/katex-0.16.9.tgz",
+    "sha256": "a0ccc017a6bff9e9dbc014b324e5203c52df16aeff105d971e916ce65b552733",
+    "files": 64
+  },
+  {
+    "name": "photoswipe",
+    "version": "4.1.3",
+    "source": "https://registry.npmjs.org/photoswipe/-/photoswipe-4.1.3.tgz",
+    "sha256": "a90cfd00c9593974868d99f17b9d581e86d757328a9c40e23e7733666fe8a030",
+    "files": 8
+  }
+]

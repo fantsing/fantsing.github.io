@@ -1,6 +1,9 @@
 +++
 date = '2025-12-21T13:40:43+08:00'
 title = 'GoogLeNet学习'
+categories = ["计算机视觉"]
+tags = ["CNN", "网络架构"]
+description = "理解 Inception 模块，以及网络宽度与计算效率之间的取舍。"
 
 +++
 

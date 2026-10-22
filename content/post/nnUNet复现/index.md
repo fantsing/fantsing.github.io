@@ -1,6 +1,9 @@
 +++
 date = '2025-11-06T13:40:43+08:00'
 title = 'nnUNet复现'
+categories = ["医学图像"]
+tags = ["nnU-Net", "论文复现"]
+description = "记录 nnU-Net 的环境配置、数据准备与复现过程。"
 
 +++
 

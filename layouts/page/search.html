@@ -1,0 +1,16 @@
+{{ define "body-class" }}template-search{{ end }}
+{{ define "main" }}
+<header class="page-intro"><p class="eyebrow">FIND A NOTE</p><h1>搜索笔记</h1><p>从一个关键词开始，找回学过的知识。</p></header>
+<form action="{{ .RelPermalink }}" class="search-form" role="search" data-json="{{ (.OutputFormats.Get "json").RelPermalink }}">
+    <p><label for="search-keyword">搜索文章</label><input id="search-keyword" name="keyword" type="search" placeholder="试试 Transformer、卷积、FNO…" autocomplete="off" aria-describedby="search-status"></p>
+    <button type="submit" title="搜索" aria-label="搜索">{{ partial "helper/icon" "search" }}</button>
+</form>
+<div class="search-result">
+    <p id="search-status" class="search-result--title section-title" role="status" aria-live="polite">输入关键词，搜索文章标题和正文。</p>
+    <div class="search-result--list article-list--compact"></div>
+</div>
+<noscript><p>搜索需要启用 JavaScript。你也可以前往<a href="{{ "archives/" | relURL }}">文章归档</a>浏览全部笔记。</p></noscript>
+{{ $script := resources.Get "ts/search.ts" | js.Build (dict "minify" hugo.IsProduction) | fingerprint }}
+<script src="{{ $script.RelPermalink }}" defer></script>
+{{ partial "footer/footer" . }}
+{{ end }}

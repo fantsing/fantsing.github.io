@@ -1,27 +1,27 @@
 # 站点基础配置
 baseurl: https://fantsing.github.io/           # 网站根URL
-languageCode: en-us                     # 默认语言代码
+languageCode: zh-CN                     # 默认语言代码
 theme: hugo-theme-stack                 # 使用的主题名称
 title: Lee Sivan's Blog                     # 网站标题
 copyright: Lee Sivan               # 版权信息
 
 # 国际化配置
 # 支持的语言: ar, bn, ca, de, el, en, es, fr, hu, id, it, ja, ko, nl, pt-br, th, uk, zh-cn, zh-hk, zh-tw
-DefaultContentLanguage: en              # 默认内容语言
+DefaultContentLanguage: zh-cn              # 默认内容语言
 
 # 如果默认语言是中文/日文/韩文，需设置为true
 # 这将使.Summary和.WordCount对CJK语言正常工作
-hasCJKLanguage: false
+hasCJKLanguage: true
 
 # 多语言详细配置
 languages:
-    en:
-        languageName: English           # 语言显示名称
+    zh-cn:
+        languageName: 简体中文           # 语言显示名称
         title: Lee Sivan's Blog            # 该语言下的网站标题
         weight: 1                       # 权重（排序用）
         params:
             sidebar:
-                subtitle:  # 侧边栏副标题
+                subtitle: 机器学习 · 论文复现 · 技术笔记  # 侧边栏副标题
 
 
 # 第三方服务配置
@@ -48,7 +48,7 @@ params:
         - post                         # 主要内容区域
     featuredImageField: image          # 特色图片字段名
     rssFullContent: true               # RSS是否包含全文
-    favicon:                           # 网站图标路径，如：/favicon.ico
+    favicon: /favicon.svg                           # 网站图标路径，如：/favicon.ico
 
     # 页脚设置
     footer:
@@ -57,13 +57,13 @@ params:
 
     # 日期格式
     dateFormat:
-        published: Jan 02, 2006        # 发布日期格式
-        lastUpdated: Jan 02, 2006 15:04 MST  # 最后更新日期格式
+        published: 2006年01月02日        # 发布日期格式
+        lastUpdated: 2006年01月02日 15:04  # 最后更新日期格式
 
     # 侧边栏设置
     sidebar:
         emoji:                       # 表情图标
-        subtitle:   # 副标题
+        subtitle: 机器学习 · 论文复现 · 技术笔记  # 副标题
         avatar:
             enabled: true              # 是否显示头像
             local: true                # 是否使用本地图片
@@ -71,6 +71,7 @@ params:
 
     # 文章设置
     article:
+        headingAnchor: true
         math: true                    # 是否支持数学公式
         toc: true                      # 是否显示目录
         readingTime: true              # 是否显示阅读时间
@@ -149,7 +150,7 @@ menu:
 
         - identifier: email
           name: Email
-          url: 15542277303@163.com
+          url: mailto:15542277303@163.com
           params:
               icon: brand-email       # 图标名称
 
@@ -177,6 +178,8 @@ markup:
                         - - $$
                           - $$
                     inline:            # 行内分隔符
+                        - - "$"
+                          - "$"
                         - - \(
                           - \)
         renderer:
@@ -190,6 +193,10 @@ markup:
         codeFences: true               # 启用代码围栏
         guessSyntax: true              # 自动猜测语法
         lineNoStart: 1                 # 行号起始值
-        lineNos: true                  # 显示行号
+        lineNos: false                  # 显示行号
         lineNumbersInTable: true       # 在表格中显示行号
         tabWidth: 4                    # 制表符宽度
+
+enableRobotsTXT: true
+timeZone: Asia/Shanghai
+summaryLength: 90

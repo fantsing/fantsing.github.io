@@ -1,0 +1,4 @@
+<h{{ math.Max 2 .Level }} id="{{ .Anchor }}">
+    {{ if site.Params.article.headingAnchor }}<a href="#{{ .Anchor }}" class="header-anchor" aria-label="链接到：{{ .PlainText }}"></a>{{ end }}
+    {{ .Text | safeHTML }}
+</h{{ math.Max 2 .Level }}>

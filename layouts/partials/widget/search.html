@@ -1,0 +1,9 @@
+{{ with site.GetPage "/page/search" }}
+<form action="{{ .RelPermalink }}" class="search-form widget" role="search">
+    <p>
+        <label for="sidebar-keyword">搜索笔记</label>
+        <input id="sidebar-keyword" name="keyword" type="search" required placeholder="标题、知识点、代码…">
+        <button type="submit" title="搜索" aria-label="搜索">{{ partial "helper/icon" "search" }}</button>
+    </p>
+</form>
+{{ end }}
