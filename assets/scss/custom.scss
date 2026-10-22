@@ -54,6 +54,7 @@ a, button, input, summary { -webkit-tap-highlight-color: transparent; }
 .home-intro { padding: 36px; border: 1px solid var(--card-separator-color); border-radius: 20px; background: var(--intro-background); }
 .eyebrow { margin: 0 0 18px; font-size: 1.15rem; letter-spacing: .18em; font-weight: 700; color: var(--accent-color); }
 .home-intro h1 { font-size: clamp(2.8rem, 3vw, 4rem); line-height: 1.45; letter-spacing: -.035em; margin: 0; color: var(--card-text-color-main); }
+.home-intro h1, .home-intro .intro-description { white-space: nowrap; max-width: 100%; overflow-x: auto; }
 .intro-description, .page-intro > p:not(.eyebrow) { color: var(--card-text-color-secondary); line-height: 1.9; font-size: 1.5rem; }
 .intro-links { display: flex; flex-wrap: wrap; align-items: center; gap: 22px; margin-top: 24px; font-size: 1.4rem; }
 .intro-links a { display: inline-flex; align-items: center; gap: 16px; min-height: 44px; }
@@ -70,6 +71,9 @@ a, button, input, summary { -webkit-tap-highlight-color: transparent; }
 .article-subtitle { font-size: 1.45rem; line-height: 1.85; }
 .article-details { gap: 14px; }
 .article-list .article-details { padding: 26px 30px; }
+.template-archives .subsection-list .article-list--tile article > a { display: flex; height: 100%; align-items: center; justify-content: center; }
+.template-archives .subsection-list .article-details { width: 100%; align-items: center; justify-content: center; text-align: center; }
+.template-archives .subsection-list .article-title { margin: 0; }
 .article-list article .article-category a, .article-category a { background: var(--surface-tint) !important; color: var(--accent-color) !important; font-size: 1.2rem; padding: 6px 10px; border-radius: 6px; }
 .article-time > div { gap: 7px; }
 .article-time time { font-size: 1.25rem; }
@@ -119,7 +123,6 @@ mark { background: #f9e7a4; color: #3b321a; border-radius: 3px; padding: 0 2px; 
     .home-intro { padding: 26px 22px; }
     .home-intro h1 { font-size: 2.9rem; }
     .intro-description { font-size: 1.4rem; }
-    .desktop-break { display: none; }
     .intro-stats { font-size: 1.15rem; gap: 10px; }
     .article-list .article-details { padding: 22px; }
     .article-title { font-size: 2rem; }

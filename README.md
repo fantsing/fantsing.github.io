@@ -17,7 +17,7 @@ Hugo + Stack 主题的中文技术博客，发布于 <https://fantsing.github.io
 python scripts/check_site.py public
 ```
 
-检查脚本只需要 Python 标准库，会检查站内链接、图片与样式资源、目录锚点、文章标题、搜索索引、RSS 和 sitemap。脚本会发现重复文章地址导致的页面覆盖。
+检查脚本只需要 Python 标准库，会检查站内链接、图片与样式资源、目录锚点、文章标题、搜索索引和 sitemap。脚本会发现重复文章地址导致的页面覆盖。站点已关闭 RSS 输出。
 
 ## 写文章
 

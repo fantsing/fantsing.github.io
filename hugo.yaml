@@ -12,6 +12,7 @@ DefaultContentLanguage: zh-cn              # 默认内容语言
 # 如果默认语言是中文/日文/韩文，需设置为true
 # 这将使.Summary和.WordCount对CJK语言正常工作
 hasCJKLanguage: true
+disableKinds: [RSS]
 
 # 多语言详细配置
 languages:
@@ -47,7 +48,6 @@ params:
     mainSections:
         - post                         # 主要内容区域
     featuredImageField: image          # 特色图片字段名
-    rssFullContent: true               # RSS是否包含全文
     favicon: /favicon.svg                           # 网站图标路径，如：/favicon.ico
 
     # 页脚设置

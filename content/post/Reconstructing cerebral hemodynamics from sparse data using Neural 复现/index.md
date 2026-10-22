@@ -1,6 +1,6 @@
 +++
 date = '2025-11-26T13:40:43+08:00'
-title = '脑血流动力学重建：神经算子论文复现'
+title = 'ViT-AI-复现'
 slug = 'cerebral-hemodynamics-neural-operators'
 categories = ["科学机器学习"]
 tags = ["神经算子", "论文复现"]
