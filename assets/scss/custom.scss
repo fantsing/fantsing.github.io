@@ -94,6 +94,12 @@ mark { background: #f9e7a4; color: #3b321a; border-radius: 3px; padding: 0 2px; 
 .article-content h1, .article-content h2, .article-content h3, .article-content h4 { line-height: 1.55; scroll-margin-top: 24px; }
 .article-content p { margin: 1.3em 0; }
 .article-content img { height: auto; border-radius: 8px; }
+.article-page .main-article .article-content img[src*="/diabetic-lower-limb-multilesion-occlusion-review/figures/lower-limb-cta"] {
+    display: block;
+    width: 50%;
+    max-width: 357px;
+    margin-inline: auto;
+}
 .article-content pre { overflow-x: auto; white-space: pre; font-size: 1.35rem; line-height: 1.7; tab-size: 4; }
 .article-content .highlight { max-width: 100%; }
 .article-content .katex-display { max-width: 100%; overflow-x: auto; overflow-y: hidden; padding: 12px 2px; }
