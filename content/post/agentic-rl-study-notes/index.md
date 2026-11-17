@@ -10,11 +10,11 @@ math = true
 
 这次学习从一个看似矛盾的现象讲起：在 SwanLab 里，三个实验的第一步 `reward` 都达到了 1，但 `datums` 和 `train_tokens` 却都是 0。答得好，为什么没有可用于更新策略的样本？弄清楚这个问题，就能把 GRPO 的组内优势、PPO 和 CISPO 的更新目标，以及训练曲线上的几项指标串起来。
 
-学习路线参考 [Datawhale · Agentic RL Lab：Getting Started（环境配置与基础概念）](https://datawhalechina.github.io/agentic-rl-lab/experiments/getting-started/)。本文由两份学习记录合并整理；SwanLab 截图来自随笔记保存的实验记录，Vision GRPO 命令单列为后续可用的试跑配置。原始笔记注明，部分内容由豆包工作 AI 辅助生成。
+学习路线参考 [Datawhale · Agentic RL Lab：Getting Started（环境配置与基础概念）](https://datawhalechina.github.io/agentic-rl-lab/experiments/getting-started/)。
 
 ## 从 SFT 到 RL：训练信号来自哪里
 
-**监督微调（Supervised Fine-Tuning，SFT）**使用已有的目标回答。在常见的语言模型训练中，交叉熵（Cross-Entropy）让模型提高目标 token 在给定上下文下的概率。**强化学习（Reinforcement Learning，RL）**则先让模型生成回答，再根据反馈更新生成策略。奖励可以来自规则、评分模型或环境；例如数学任务仍可用标准答案判分，但不用把完整参考解法当作逐 token 的训练目标。[^getting-started]
+监督微调（Supervised Fine-Tuning，SFT）使用已有的目标回答。在常见的语言模型训练中，交叉熵（Cross-Entropy）让模型提高目标 token 在给定上下文下的概率。强化学习（Reinforcement Learning，RL）则先让模型生成回答，再根据反馈更新生成策略。奖励可以来自规则、评分模型或环境；例如数学任务仍可用标准答案判分，但不用把完整参考解法当作逐 token 的训练目标。[^getting-started]
 
 | 术语 | 在这类训练里的含义 |
 | --- | --- |
@@ -73,9 +73,9 @@ $$
 
 ## LoRA 和 OPD：改哪些参数、向谁学习
 
-**LoRA（Low-Rank Adaptation）**回答的是「改哪些参数」。全量微调会更新基础模型的全部权重；LoRA 冻结基础权重，在选定层学习低秩增量。固定目标层时，较小的 rank 通常意味着更少的可训练参数。保存 LoRA adapter 可以不复制整套基础权重，但使用适配器仍需要兼容的基础模型。[^getting-started]
+LoRA（Low-Rank Adaptation）回答的是「改哪些参数」。全量微调会更新基础模型的全部权重；LoRA 冻结基础权重，在选定层学习低秩增量。固定目标层时，较小的 rank 通常意味着更少的可训练参数。保存 LoRA adapter 可以不复制整套基础权重，但使用适配器仍需要兼容的基础模型。[^getting-started]
 
-**OPD（On-Policy Distillation，同策略蒸馏，也称在线策略蒸馏）**回答的是「从哪里拿反馈」。离线蒸馏的一种常见做法是先让 Teacher 生成答案，再让 Student 模仿；OPD 则先让 Student 自己生成轨迹，再让 Teacher 在这些上下文里提供 token 级的分数或分布反馈。这意味着 Student 在自己实际会遇到的生成路径上得到指导。相比之下，前面的 GRPO 主要依靠同组回答的奖励差来构造优势。[^getting-started]
+OPD（On-Policy Distillation，同策略蒸馏，也称在线策略蒸馏）回答的是「从哪里拿反馈」。离线蒸馏的一种常见做法是先让 Teacher 生成答案，再让 Student 模仿；OPD 则先让 Student 自己生成轨迹，再让 Teacher 在这些上下文里提供 token 级的分数或分布反馈。这意味着 Student 在自己实际会遇到的生成路径上得到指导。相比之下，前面的 GRPO 主要依靠同组回答的奖励差来构造优势。[^getting-started]
 
 KL 散度有方向：若以常见的 Teacher 到 Student 的蒸馏方向 $D_{\mathrm{KL}}(\pi_T\|\pi_S)$ 作参照，反向 KL 是 $D_{\mathrm{KL}}(\pi_S\|\pi_T)$。两者不能互换。这里的 Teacher 与 Student 是分布的两个角色，原笔记中的 27B 教师和 4B 学生只是帮助理解的例子，并非这几条训练曲线采用的模型配置。[^getting-started]
 
@@ -83,15 +83,7 @@ KL 散度有方向：若以常见的 Teacher 到 Student 的蒸馏方向 $D_{\ma
 
 一次典型的工具交互可以按顺序拆成三段：Agent 生成工具调用（Action），环境返回结果（Observation），Agent 根据结果继续回答。第一次调用和最后的回答都是模型自己生成的内容；中间的观察由工具产生。**Observation Mask（观测掩码）**让模型在生成后续动作时仍能读到工具结果，同时排除这些环境 token 在策略损失中的直接贡献。否则，训练就会把环境给出的文本误当成模型自己的选择。[^getting-started]
 
-## Vision GRPO 的单步试跑命令
 
-第二份笔记还保存了一条 Vision GRPO 命令，对应 Datawhale 的 GeoQA 图文推理入门实验。它与图 1 的文本 GRPO 对比是两件事。下列命令用于检查图像输入、回答采样和奖励打分是否走通；需要先按教程准备环境、登录并下载数据。[^vision]
-
-```bash
-uv run python experiments/vision-grpo/train.py --steps 1 --batch-size 1 --group-size 4 --max-tokens 256 --save-every 0 --no-save-weights --show-samples --swanlab-mode disabled
-```
-
-这个配置只在一题上采四条回答，不保存训练权重，也不送日志到 SwanLab；远端采样仍可能消耗额度。如果四条刚好同分，完成 rollout 也不代表执行了反向传播。判断更新链路是否跑通，仍要看是否出现了非退化组和实际进入训练的样本。[^vision]
 
 [^getting-started]: Datawhale，Agentic RL Lab，[Getting Started：环境配置与基础概念](https://datawhalechina.github.io/agentic-rl-lab/experiments/getting-started/)。
 [^grpo]: Datawhale，Agentic RL Lab，[GRPO：从组内比较开始](https://datawhalechina.github.io/agentic-rl-lab/experiments/grpo/)。
